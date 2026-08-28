@@ -1,0 +1,83 @@
+plugins {
+    id "dev.architectury.loom" version "${loom_version}"
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+}
+
+version = project.mod_version + "+" + project.minecraft_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+loom {
+    silentMojangMappingsLicense()
+}
+
+architectury {
+    minecraft = project.minecraft_version
+    platformSetupLoomIde()
+    neoForge()
+}
+
+repositories {
+    maven { url = "https://maven.architectury.dev/" }
+    maven { url = "https://maven.neoforged.net/releases/" }
+    maven { url = "https://maven.blamejared.com/" }
+    maven { url = "https://repo.sleeping.town/" }
+    maven { url = "https://maven.wispforest.io/releases" }
+    maven { url = "https://maven.su5ed.dev/releases" }
+    maven { url = "https://maven.fabricmc.net" }
+    maven { url = "https://cursemaven.com" }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraft:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        it.mappings("net.fabricmc:yarn:${yarn_mappings}:v2")
+        it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${yarn_mappings_patch_neoforge_version}")
+    }
+
+    neoForge "net.neoforged:neoforge:${neoforge_version}"
+
+    modCompileOnly "maven.modrinth:${dungeon_difficulty_modrinth_project}:${dungeon_difficulty_modrinth_version}"
+    modCompileOnly "maven.modrinth:${jewelry_modrinth_project}:${jewelry_modrinth_version}"
+    modCompileOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
+    modCompileOnly "maven.modrinth:tiny-config:${tiny_config_version}"
+    modCompileOnly "io.wispforest:accessories-neoforge:${accessories_version}"
+    compileOnly "io.wispforest:endec:0.1.8"
+    modCompileOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
+    modCompileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.27.0.336"
+    modCompileOnly "dev.emi:emi-neoforge:1.1.24+1.21.1:api"
+    modRuntimeOnly "maven.modrinth:${dungeon_difficulty_modrinth_project}:${dungeon_difficulty_modrinth_version}"
+    modRuntimeOnly "maven.modrinth:${jewelry_modrinth_project}:${jewelry_modrinth_version}"
+    modRuntimeOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
+    modRuntimeOnly "maven.modrinth:tiny-config:${tiny_config_version}"
+    modRuntimeOnly "io.wispforest:accessories-neoforge:${accessories_version}"
+    modRuntimeOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}

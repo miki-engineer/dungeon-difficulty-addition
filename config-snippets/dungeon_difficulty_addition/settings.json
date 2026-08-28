@@ -1,0 +1,22 @@
+{
+  // Turns the mod on or off.
+  "enabled": true,
+  // Scales Jewelry items.
+  "scale_jewelry": true,
+  // Scales Relics items.
+  "scale_relics": true,
+  // Prevents duplicate accessory stat lines.
+  "merge_accessory_modifiers": true,
+  // Shows scaled values in tooltips.
+  "show_compat_tooltip": true,
+  // Controls stat scaling per level. Supports attribute IDs and regex.
+  "attributes": [
+    {
+      "attribute": ".*",
+      "operation": "MULTIPLY_BASE",
+      "randomness": 0.05,
+      "value": 0.1,
+      "offset": 0.0
+    }
+  ]
+}

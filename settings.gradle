@@ -1,0 +1,28 @@
+pluginManagement {
+    repositories {
+        maven { url = "https://maven.architectury.dev/" }
+        maven { url = "https://maven.fabricmc.net/" }
+        maven { url = "https://maven.neoforged.net/releases/" }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        maven { url = "https://maven.architectury.dev/" }
+        maven { url = "https://maven.fabricmc.net/" }
+        maven { url = "https://maven.neoforged.net/releases/" }
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+            content {
+                includeGroup "maven.modrinth"
+            }
+        }
+        mavenCentral()
+    }
+}
+
+rootProject.name = "dungeon-difficulty-addition-neoforge"

@@ -1,0 +1,14 @@
+[
+  {
+    "item_matches": {
+      "id": "~(jewelry|relics_rpgs):.*"
+    },
+    "attributes": [
+      {
+        "attribute": ".*",
+        "operation": "MULTIPLY_BASE",
+        "value": 0.05
+      }
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+{
+  // Add any level number here.
+  // Put item IDs or regex patterns in its list.
+  // The highest matching level wins.
+  "levels": {}
+}

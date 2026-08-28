@@ -1,0 +1,34 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.dungeondifficultyaddition.mixin",
+  "plugin": "com.example.dungeondifficultyaddition.DungeonDifficultyAdditionMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CraftingResultInventoryMixin",
+    "FixedItemEntityScalingMixin",
+    "FixedItemStackScalingMixin",
+    "ItemScalingMixin",
+    "ItemScalingInvoker",
+    "ItemStackTooltipMixin",
+    "JewelryCurioItemMixin",
+    "RelicCurioItemMixin",
+    "SpellAreaImpactMixin",
+    "SpellCloudMixin",
+    "SpellDeliveryMixin",
+    "SpellEstimationMixin",
+    "SpellExecutionMixin",
+    "SpellImpactsMixin",
+    "SpellParametersMixin",
+    "SpellTriggersMixin",
+    "StatusEffectMixin"
+  ],
+  "client": [
+    "client.EmiRecipeSlotMixin",
+    "client.JeiRecipeSlotMixin",
+    "SpellTooltipMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
