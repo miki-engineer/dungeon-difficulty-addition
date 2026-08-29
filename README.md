@@ -1,7 +1,7 @@
-# Dungeon Difficulty Addition
+# Dungeon Difficulty Additions
 
 A NeoForge mod for Minecraft 1.21.1 that expands
-[Dungeon Difficulty](https://modrinth.com/mod/dungeon-difficulty) loot scaling.
+[Dungeon Difficulty](https://www.curseforge.com/minecraft/mc-mods/dungeon-difficulty) loot scaling.
 
 ## What It Does
 
