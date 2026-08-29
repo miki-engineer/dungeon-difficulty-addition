@@ -41,8 +41,6 @@ config/dungeon_difficulty_addition/
 └── fixed_item_levels.json
 ```
 
-Both files support `//` comments.
-
 ## Basic Settings
 
 `settings.json` controls accessory scaling and tooltip display:
@@ -97,19 +95,12 @@ Use `fixed_item_levels.json` to force specific items to a chosen level:
 }
 ```
 
-There is no seven-level limit. Any positive whole-number level is supported.
+Any positive whole-number level is supported.
 Exact item IDs and Java regular expressions can be used. If several rules match,
 the highest level wins.
 
 Fixed levels work on loot, boss drops, crafted items, commands, ground items,
 and items already held in an inventory.
-
-## Notes
-
-- Dungeon Difficulty still decides the level of normal loot.
-- Whole tooltip values display as `28`; decimal values display as `28.5`.
-- Fixed-level melee weapons do not gain extra attack speed.
-- Raw Jewelry gems and crafting materials are excluded from level scaling.
 
 ## License
 
