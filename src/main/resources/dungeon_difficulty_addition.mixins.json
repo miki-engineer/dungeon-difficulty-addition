@@ -1,8 +1,8 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.example.dungeondifficultyaddition.mixin",
-  "plugin": "com.example.dungeondifficultyaddition.DungeonDifficultyAdditionMixinPlugin",
+  "package": "com.miki.dungeondifficultyaddition.mixin",
+  "plugin": "com.miki.dungeondifficultyaddition.DungeonDifficultyAdditionMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CraftingResultInventoryMixin",
