@@ -1,5 +1,0 @@
-Copyright (c) 2026 Nitro16. All Rights Reserved.
-
-No permission is granted to copy, modify, distribute, sublicense, or sell this
-software or its source code without prior written permission from the copyright
-holder.
