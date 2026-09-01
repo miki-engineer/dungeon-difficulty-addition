@@ -104,4 +104,4 @@ and items already held in an inventory.
 
 ## License
 
-All Rights Reserved. See [LICENSE.txt](LICENSE.txt).
+All Rights Reserved.
