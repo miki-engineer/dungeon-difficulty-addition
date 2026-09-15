@@ -10,6 +10,7 @@ A NeoForge mod for Minecraft 1.21.1 that expands
 - Shows the scaled values directly in item tooltips.
 - Supports fixed levels for boss drops, crafted items, and other modded equipment.
 - Supports JEI and EMI recipe-output previews.
+- Optionally applies dungeon damage penalties based on equipped item levels.
 
 Level `0` is the base item. Scaling bonuses begin at level `1`.
 
@@ -17,7 +18,7 @@ Level `0` is the base item. Scaling bonuses begin at level `1`.
 
 - Minecraft 1.21.1
 - NeoForge 21.1 or newer
-- Dungeon Difficulty 3.6.10 or newer
+- Dungeon Difficulty 3.8.0 or newer
 
 Optional integrations:
 
@@ -38,10 +39,11 @@ The configs are created in:
 ```text
 config/dungeon_difficulty_addition/
 ├── settings.json
-└── fixed_item_levels.json
+├── fixed_item_levels.json
+└── encounters.json
 ```
 
-## Basic Settings
+## Accessory Settings
 
 `settings.json` controls accessory scaling and tooltip display:
 
@@ -101,6 +103,75 @@ the highest level wins.
 
 Fixed levels work on loot, boss drops, crafted items, commands, ground items,
 and items already held in an inventory.
+
+## Encounter Settings
+
+`encounters.json` controls equipment requirements and dungeon damage penalties.
+This feature is **disabled by default** and is independent of accessory scaling.
+
+```jsonc
+{
+  "player_readiness": {
+    // Enables equipment readiness and its damage rules.
+    "enabled": false,
+    // Number of equipped armor/Curios pieces needed at or above a level.
+    "required_equipped_items": 3,
+    // Level used for items without a Dungeon Difficulty level marker.
+    "unmarked_item_level": 0,
+    // Adds 25% damage taken per missing readiness level.
+    "incoming_penalty_per_level": 0.25,
+    // Enables the main-hand level requirement for damage dealt.
+    "outgoing_penalty_enabled": true,
+    // Removes 10% damage dealt per missing main-hand level.
+    "outgoing_penalty_per_level": 0.10,
+    // Limits the outgoing damage reduction to 90%.
+    "maximum_outgoing_reduction": 0.90
+  },
+  // Dungeon Difficulty encounter scopes that use these rules.
+  "scopes": ["dungeon", "heroic"],
+  // Highest level used in readiness calculations.
+  "max_level": 1000
+}
+```
+
+Set `enabled` to `true`, save the file, and restart the game or server.
+Restart again after changing any encounter setting. Comments above explain the
+fields; they can be omitted when editing the generated JSON file.
+
+### Required Pieces
+
+With `required_equipped_items: 3`, you need three equipped pieces at level 4
+or higher to count as readiness level 4. Set it to `2` to require only two pieces.
+For example, level 4 leggings alone give readiness 0; adding a level 4 chest
+piece gives readiness 4 when two pieces are required.
+
+Armor and active functional Curios count together. Hands, inventory items,
+cosmetic Curios, and empty slots do not count. Each occupied slot counts once.
+Fewer than the required number of pieces gives readiness 0; otherwise, the
+lowest level among your best required pieces determines readiness.
+
+### Damage Multipliers
+
+Against a level 4 mob, readiness 0 with `incoming_penalty_per_level: 0.25`
+means four missing levels: `1 + 4 × 0.25 = 2`, or twice the incoming damage.
+Readiness 4 or higher removes this penalty.
+
+Damage dealt uses your main-hand item separately. With a level 0 main hand
+against a level 4 mob, `outgoing_penalty_per_level: 0.10` gives a 40% reduction.
+Set it to `0.15` for a 60% reduction instead. A level 4 or higher main hand
+removes this penalty. The reduction cannot exceed `maximum_outgoing_reduction`.
+
+These multipliers apply before armor and other defenses. Player-attributed
+projectiles and spells use the main-hand level when they hit. Set either penalty
+rate to `0` to remove that penalty. Rates and the reduction cap accept `0` to `1`;
+the required piece count accepts `1` to `128`.
+
+### Checking Your Settings
+
+Use `/dda_readiness` to see your equipped item levels, required piece count,
+readiness, and main-hand level. In Survival with cheats/operator permission,
+use `/dda_damage_debug on` to log your next 20 incoming or outgoing hits in chat
+and `logs/latest.log`. Use `/dda_damage_debug off` to stop early.
 
 ## License
 

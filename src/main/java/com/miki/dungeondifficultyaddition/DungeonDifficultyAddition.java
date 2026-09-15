@@ -12,5 +12,7 @@ public final class DungeonDifficultyAddition {
 
     public DungeonDifficultyAddition() {
         AccessoryScalingConfig.get();
+        com.miki.dungeondifficultyaddition.readiness.EncounterConfig.get();
+        com.miki.dungeondifficultyaddition.readiness.EncounterEvents.register();
     }
 }

@@ -21,6 +21,7 @@ architectury {
 }
 
 repositories {
+    mavenCentral()
     maven { url = "https://maven.architectury.dev/" }
     maven { url = "https://maven.neoforged.net/releases/" }
     maven { url = "https://maven.blamejared.com/" }
@@ -29,6 +30,7 @@ repositories {
     maven { url = "https://maven.su5ed.dev/releases" }
     maven { url = "https://maven.fabricmc.net" }
     maven { url = "https://cursemaven.com" }
+    maven { url = "https://maven.theillusivec4.top/" }
     maven {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
@@ -48,6 +50,9 @@ dependencies {
     neoForge "net.neoforged:neoforge:${neoforge_version}"
 
     modCompileOnly "maven.modrinth:${dungeon_difficulty_modrinth_project}:${dungeon_difficulty_modrinth_version}"
+    modCompileOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1:api"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     modCompileOnly "maven.modrinth:${jewelry_modrinth_project}:${jewelry_modrinth_version}"
     modCompileOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
     modCompileOnly "maven.modrinth:tiny-config:${tiny_config_version}"
@@ -81,3 +86,5 @@ java {
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 21
 }
+
+tasks.withType(Test).configureEach { useJUnitPlatform() }

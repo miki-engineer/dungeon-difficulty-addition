@@ -28,7 +28,7 @@ side = "BOTH"
 [[dependencies.dungeon_difficulty_addition]]
 modId = "dungeon_difficulty"
 type = "required"
-versionRange = "[3.6.10,)"
+versionRange = "[3.8.0,)"
 ordering = "AFTER"
 side = "BOTH"
 
@@ -55,3 +55,10 @@ side = "BOTH"
 
 [[mixins]]
 config = "dungeon_difficulty_addition.mixins.json"
+
+[[dependencies.dungeon_difficulty_addition]]
+modId = "curios"
+type = "optional"
+versionRange = "[9.5.1,)"
+ordering = "AFTER"
+side = "BOTH"
