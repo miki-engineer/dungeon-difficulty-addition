@@ -163,8 +163,7 @@ removes this penalty. The reduction cannot exceed `maximum_outgoing_reduction`.
 
 These multipliers apply before armor and other defenses. Player-attributed
 projectiles and spells use the main-hand level when they hit. Set either penalty
-rate to `0` to remove that penalty. Rates and the reduction cap accept `0` to `1`;
-the required piece count accepts `1` to `128`.
+rate to `0` to remove that penalty.
 
 ### Checking Your Settings
 
