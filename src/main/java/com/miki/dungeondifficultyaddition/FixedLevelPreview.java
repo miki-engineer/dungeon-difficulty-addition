@@ -8,7 +8,8 @@ public final class FixedLevelPreview {
 
     public static ItemStack scaledCopy(ItemStack original) {
         if (original == null || original.isEmpty()
-                || AccessoryScalingConfig.get().fixedLevel(original) <= 0) {
+                || (AccessoryScalingConfig.get().fixedLevel(original) <= 0
+                && !AccessoryItemScaling.needsMinimumLevel(original))) {
             return original;
         }
 

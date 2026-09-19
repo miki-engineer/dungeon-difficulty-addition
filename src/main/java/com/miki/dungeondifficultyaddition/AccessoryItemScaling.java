@@ -18,6 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class AccessoryItemScaling {
     private static final String FIXED_LEVEL_MARKER = "dungeon_difficulty_addition.fixed_level";
     private static final String FIXED_REVISION_MARKER = "dungeon_difficulty_addition.fixed_revision";
+    private static final String MANUAL_LEVEL_MARKER = "dungeon_difficulty_addition.manual_level";
     private static final String LEGACY_FIXED_LEVEL_MARKER = "dd_jewelry_compat.fixed_level";
     private static final String LEGACY_FIXED_REVISION_MARKER = "dd_jewelry_compat.fixed_revision";
     private static final String CURIOS_ROLL_MARKER = "dungeon_difficulty_addition.curios_roll";
@@ -62,6 +63,64 @@ public final class AccessoryItemScaling {
         ItemScaling.markAsScaled(stack, level);
     }
 
+    static int applyCommandLevel(ItemStack stack, int requestedLevel) {
+        var config = AccessoryScalingConfig.get();
+        if (stack == null || stack.isEmpty() || requestedLevel <= 0 || !config.enabled || isBuiltInExcluded(stack)) {
+            return 0;
+        }
+
+        var fixedLevel = config.fixedLevel(stack);
+        if (fixedLevel > 0) {
+            if (!applyLevel(stack, fixedLevel)) {
+                return 0;
+            }
+            markFixedLevel(stack, fixedLevel);
+            return fixedLevel;
+        }
+
+        if (!applyLevel(stack, requestedLevel)) {
+            return 0;
+        }
+        stack.apply(
+                DataComponentTypes.CUSTOM_DATA,
+                NbtComponent.DEFAULT,
+                requestedLevel,
+                (data, assignedLevel) -> data.apply(nbt -> {
+                    nbt.putInt(MANUAL_LEVEL_MARKER, assignedLevel);
+                    nbt.remove(FIXED_LEVEL_MARKER);
+                    nbt.remove(FIXED_REVISION_MARKER);
+                    nbt.remove(LEGACY_FIXED_LEVEL_MARKER);
+                    nbt.remove(LEGACY_FIXED_REVISION_MARKER);
+                })
+        );
+        return requestedLevel;
+    }
+
+    private static boolean applyLevel(ItemStack stack, int level) {
+        var config = AccessoryScalingConfig.get();
+        if (stack == null || stack.isEmpty() || level <= 0 || !config.enabled || isBuiltInExcluded(stack)) {
+            return false;
+        }
+
+        removeFixedModifiers(stack);
+        if (ItemScaling.isScaled(stack)) {
+            ItemScaling.removeScaling(stack);
+        }
+
+        if (isSupportedAccessory(stack, config)) {
+            scaleVanillaAttributes(stack, config, level);
+            if (OptionalModSupport.isLoaded("accessories") && !usesCuriosAccessory(stack)) {
+                OptionalAccessoryAttributeScaling.scaleAttributes(stack, config, level, true);
+            }
+            ensureCuriosRoll(stack);
+            ItemScaling.markAsScaled(stack, level);
+        } else if (!DungeonDifficultyNativeScaling.apply(stack, level)) {
+            scaleVanillaAttributes(stack, config, level);
+            ItemScaling.markAsScaled(stack, level);
+        }
+        return true;
+    }
+
     public static void enforceFixedLevel(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return;
@@ -69,6 +128,10 @@ public final class AccessoryItemScaling {
 
         var config = AccessoryScalingConfig.get();
         if (!config.enabled) {
+            return;
+        }
+
+        if (manualLevelMarker(stack) > 0) {
             return;
         }
 
@@ -81,31 +144,39 @@ public final class AccessoryItemScaling {
         }
 
         var level = config.fixedLevel(stack);
-        if (level <= 0 || fixedLevelMarker(stack) == level
+        if (level <= 0) {
+            // A floor, not a fixed override: preserve dungeon/manual levels and
+            // do not reroll attributes on subsequent inventory ticks.
+            if (needsMinimumLevel(stack)) {
+                applyLevel(stack, 1);
+            }
+            return;
+        }
+        if (fixedLevelMarker(stack) == level
                 && ItemScaling.getScaleFactor(stack) == level
                 && fixedRevisionMarker(stack) == FIXED_REVISION
                 && !hasNegativeFixedModifier(stack)) {
             return;
         }
 
-        removeFixedModifiers(stack);
-        if (ItemScaling.isScaled(stack)) {
-            // Clear old generated scaling first.
-            ItemScaling.removeScaling(stack);
+        if (!applyLevel(stack, level)) {
+            return;
         }
+        markFixedLevel(stack, level);
+    }
 
-        if (isSupportedAccessory(stack, config)) {
-            scaleVanillaAttributes(stack, config, level);
-            if (OptionalModSupport.isLoaded("accessories") && !usesCuriosAccessory(stack)) {
-                OptionalAccessoryAttributeScaling.scaleAttributes(stack, config, level, true);
-            }
-            ensureCuriosRoll(stack);
-            ItemScaling.markAsScaled(stack, level);
-        } else if (!DungeonDifficultyNativeScaling.apply(stack, level)) {
-            // Handles configured items without standard equipment attributes.
-            scaleVanillaAttributes(stack, config, level);
-            ItemScaling.markAsScaled(stack, level);
+    public static boolean needsMinimumLevel(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || ItemScaling.getScaleFactor(stack) > 0
+                || isBuiltInExcluded(stack)) {
+            return false;
         }
+        var config = AccessoryScalingConfig.get();
+        return config.enabled && config.minimum_equipment_level_enabled
+                && (isSupportedAccessory(stack, config)
+                || DungeonDifficultyNativeScaling.isEquipment(stack));
+    }
+
+    private static void markFixedLevel(ItemStack stack, int level) {
         stack.apply(
                 DataComponentTypes.CUSTOM_DATA,
                 NbtComponent.DEFAULT,
@@ -113,6 +184,7 @@ public final class AccessoryItemScaling {
                 (data, fixedLevel) -> data.apply(nbt -> {
                     nbt.putInt(FIXED_LEVEL_MARKER, fixedLevel);
                     nbt.putInt(FIXED_REVISION_MARKER, FIXED_REVISION);
+                    nbt.remove(MANUAL_LEVEL_MARKER);
                     nbt.remove(LEGACY_FIXED_LEVEL_MARKER);
                     nbt.remove(LEGACY_FIXED_REVISION_MARKER);
                 })
@@ -130,6 +202,13 @@ public final class AccessoryItemScaling {
         var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
         return customData != null && customData.contains(FIXED_REVISION_MARKER)
                 ? customData.getNbt().getInt(FIXED_REVISION_MARKER)
+                : 0;
+    }
+
+    private static int manualLevelMarker(ItemStack stack) {
+        var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+        return customData != null && customData.contains(MANUAL_LEVEL_MARKER)
+                ? customData.getNbt().getInt(MANUAL_LEVEL_MARKER)
                 : 0;
     }
 

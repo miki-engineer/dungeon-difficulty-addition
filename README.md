@@ -43,6 +43,23 @@ config/dungeon_difficulty_addition/
 └── encounters.json
 ```
 
+## Command
+
+Operators can give a player an item at any positive level:
+
+```text
+/dda give <player> <item> <level>
+```
+
+Example:
+
+```text
+/dda give @s minecraft:diamond_sword 5
+```
+
+Items configured in `fixed_item_levels.json` always use their configured fixed
+level, even when the command requests a different level.
+
 ## Accessory Settings
 
 `settings.json` controls accessory scaling and tooltip display:
@@ -51,6 +68,8 @@ config/dungeon_difficulty_addition/
 {
   // Turns the mod on or off.
   "enabled": true,
+  // Gives unlevelled equipment level 1. Requires enabled = true.
+  "minimum_equipment_level_enabled": true,
   // Scales Jewelry items.
   "scale_jewelry": true,
   // Scales Relics items.

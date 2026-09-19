@@ -52,6 +52,7 @@ public final class AccessoryScalingConfig {
     private static FixedItemLevels fixedLevels;
 
     public boolean enabled = true;
+    public boolean minimum_equipment_level_enabled = true;
     public boolean scale_jewelry = true;
     public boolean scale_relics = true;
     public boolean merge_accessory_modifiers = true;
@@ -240,6 +241,12 @@ public final class AccessoryScalingConfig {
     private static Map<String, String> createSettingsComments() {
         var comments = new LinkedHashMap<String, String>();
         comments.put("enabled", "Turns the mod on or off.");
+        comments.put("minimum_equipment_level_enabled", String.join("\n",
+                "Enables the level 1 minimum for equipment. Requires enabled = true.",
+                "Equipment with no level or level 0 receives level 1 with normal scaling.",
+                "Existing levels (such as level 2 loot) stay unchanged; configured fixed levels still apply.",
+                "Turning this off does not remove levels already applied."
+        ));
         comments.put("scale_jewelry", "Scales Jewelry items.");
         comments.put("scale_relics", "Scales Relics items.");
         comments.put("merge_accessory_modifiers", "Prevents duplicate accessory stat lines.");

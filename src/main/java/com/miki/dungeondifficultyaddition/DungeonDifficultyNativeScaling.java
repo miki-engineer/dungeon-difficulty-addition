@@ -10,6 +10,7 @@ import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.RangedWeaponItem;
@@ -49,6 +50,14 @@ final class DungeonDifficultyNativeScaling {
     private DungeonDifficultyNativeScaling() {
     }
 
+    static boolean isEquipment(ItemStack stack) {
+        return stack.getItem() instanceof ToolItem
+                || stack.getItem() instanceof RangedWeaponItem
+                || stack.getItem() instanceof ArmorItem
+                || stack.getItem() instanceof ShieldItem
+                || inferKindAndSlots(stack) != null;
+    }
+
     static boolean apply(ItemStack stack, int level) {
         var itemId = Registries.ITEM.getId(stack.getItem()).toString();
         var hasDynamicDefaults = HAS_DYNAMIC_DEFAULT_ATTRIBUTES.get(((Object) stack.getItem()).getClass());
@@ -59,6 +68,16 @@ final class DungeonDifficultyNativeScaling {
                 dynamicDefaults = knownBrokenDynamicDefaults(itemId);
             }
             stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, dynamicDefaults);
+        }
+
+        // Use Dungeon Difficulty's public scaler for every item type it recognizes
+        // natively. Reserve the inferred compatibility path for nonstandard items.
+        if (stack.getItem() instanceof ToolItem
+                || stack.getItem() instanceof RangedWeaponItem
+                || stack.getItem() instanceof ArmorItem
+                || stack.getItem() instanceof ShieldItem) {
+            ItemScaling.scale(stack, level);
+            return ItemScaling.isScaled(stack);
         }
 
         var beforeScaling = describeAttributes(stack);

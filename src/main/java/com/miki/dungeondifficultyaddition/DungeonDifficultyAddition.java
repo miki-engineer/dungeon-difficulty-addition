@@ -1,6 +1,7 @@
 package com.miki.dungeondifficultyaddition;
 
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(DungeonDifficultyAddition.MOD_ID)
 public final class DungeonDifficultyAddition {
@@ -14,5 +15,6 @@ public final class DungeonDifficultyAddition {
         AccessoryScalingConfig.get();
         com.miki.dungeondifficultyaddition.readiness.EncounterConfig.get();
         com.miki.dungeondifficultyaddition.readiness.EncounterEvents.register();
+        NeoForge.EVENT_BUS.addListener(DungeonDifficultyCommands::register);
     }
 }
