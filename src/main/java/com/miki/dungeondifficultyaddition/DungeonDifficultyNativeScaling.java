@@ -51,11 +51,17 @@ final class DungeonDifficultyNativeScaling {
     }
 
     static boolean isEquipment(ItemStack stack) {
+        var path = Registries.ITEM.getId(stack.getItem()).getPath().replace("_", "").replace("-", "");
+        if (path.contains("spellbook") || path.contains("spellscroll")) {
+            return false;
+        }
         return stack.getItem() instanceof ToolItem
                 || stack.getItem() instanceof RangedWeaponItem
                 || stack.getItem() instanceof ArmorItem
                 || stack.getItem() instanceof ShieldItem
-                || inferKindAndSlots(stack) != null;
+                // A spell container alone is not equipment (e.g. spell scrolls).
+                // Keep the broader compatibility inference for explicit scaling only.
+                || inferKindAndSlots(stack, false) != null;
     }
 
     static boolean apply(ItemStack stack, int level) {
@@ -172,6 +178,10 @@ final class DungeonDifficultyNativeScaling {
     }
 
     private static InferredItem inferKindAndSlots(ItemStack stack) {
+        return inferKindAndSlots(stack, true);
+    }
+
+    private static InferredItem inferKindAndSlots(ItemStack stack, boolean allowSpellContainer) {
         var attributes = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         var armorSlots = new LinkedHashSet<AttributeModifierSlot>();
         var weapon = false;
@@ -203,7 +213,7 @@ final class DungeonDifficultyNativeScaling {
                     true
             );
         }
-        if (isMagicWeapon(stack)) {
+        if (isMagicWeapon(stack, allowSpellContainer)) {
             return new InferredItem(
                     PatternMatching.ItemKind.WEAPONS,
                     List.of(AttributeModifierSlot.MAINHAND),
@@ -273,8 +283,9 @@ final class DungeonDifficultyNativeScaling {
         return false;
     }
 
-    private static boolean isMagicWeapon(ItemStack stack) {
-        if (OptionalModSupport.isLoaded(DungeonDifficultyAddition.SPELL_ENGINE_MOD_ID)
+    private static boolean isMagicWeapon(ItemStack stack, boolean allowSpellContainer) {
+        if (allowSpellContainer
+                && OptionalModSupport.isLoaded(DungeonDifficultyAddition.SPELL_ENGINE_MOD_ID)
                 && OptionalSpellEngineSupport.hasSpellContainer(stack)) {
             return true;
         }

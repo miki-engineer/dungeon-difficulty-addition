@@ -170,6 +170,10 @@ public final class AccessoryItemScaling {
                 || isBuiltInExcluded(stack)) {
             return false;
         }
+        if (OptionalModSupport.isLoaded(DungeonDifficultyAddition.SPELL_ENGINE_MOD_ID)
+                && OptionalSpellEngineSupport.isSpellBookOrScroll(stack)) {
+            return false;
+        }
         var config = AccessoryScalingConfig.get();
         return config.enabled && config.minimum_equipment_level_enabled
                 && (isSupportedAccessory(stack, config)
