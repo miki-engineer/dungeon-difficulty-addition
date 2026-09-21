@@ -153,10 +153,6 @@ This feature is **disabled by default** and is independent of accessory scaling.
 }
 ```
 
-Set `enabled` to `true`, save the file, and restart the game or server.
-Restart again after changing any encounter setting. Comments above explain the
-fields; they can be omitted when editing the generated JSON file.
-
 ### Required Pieces
 
 With `required_equipped_items: 3`, you need three equipped pieces at level 4
