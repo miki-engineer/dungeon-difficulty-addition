@@ -1,6 +1,6 @@
 package com.miki.dungeondifficultyaddition.readiness;
 
-import com.miki.dungeondifficultyaddition.OptionalModSupport;
+import com.miki.dungeondifficultyaddition.compat.OptionalModSupport;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;

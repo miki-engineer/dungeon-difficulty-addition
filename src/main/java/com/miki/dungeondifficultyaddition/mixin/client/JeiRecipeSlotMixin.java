@@ -1,6 +1,6 @@
 package com.miki.dungeondifficultyaddition.mixin.client;
 
-import com.miki.dungeondifficultyaddition.FixedLevelPreview;
+import com.miki.dungeondifficultyaddition.scaling.FixedLevelPreview;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.RecipeIngredientRole;

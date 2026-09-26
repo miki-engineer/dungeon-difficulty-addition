@@ -1,6 +1,6 @@
 package com.miki.dungeondifficultyaddition.mixin.client;
 
-import com.miki.dungeondifficultyaddition.FixedLevelPreview;
+import com.miki.dungeondifficultyaddition.scaling.FixedLevelPreview;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;

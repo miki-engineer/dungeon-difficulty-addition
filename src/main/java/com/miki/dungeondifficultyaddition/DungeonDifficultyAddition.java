@@ -1,5 +1,9 @@
 package com.miki.dungeondifficultyaddition;
 
+import com.miki.dungeondifficultyaddition.command.DungeonDifficultyCommands;
+import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
+import com.miki.dungeondifficultyaddition.readiness.EncounterConfig;
+import com.miki.dungeondifficultyaddition.readiness.EncounterEvents;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -13,8 +17,8 @@ public final class DungeonDifficultyAddition {
 
     public DungeonDifficultyAddition() {
         AccessoryScalingConfig.get();
-        com.miki.dungeondifficultyaddition.readiness.EncounterConfig.get();
-        com.miki.dungeondifficultyaddition.readiness.EncounterEvents.register();
+        EncounterConfig.get();
+        EncounterEvents.register();
         NeoForge.EVENT_BUS.addListener(DungeonDifficultyCommands::register);
     }
 }
