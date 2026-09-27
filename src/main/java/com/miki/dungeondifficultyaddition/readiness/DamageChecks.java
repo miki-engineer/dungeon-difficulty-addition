@@ -59,6 +59,7 @@ public final class DamageChecks {
     }
 
     static Trace begin(LivingIncomingDamageEvent event) {
+        if (REMAINING.isEmpty()) return null;
         try {
             var attacker = event.getSource().getAttacker();
             var victim = event.getEntity();
@@ -95,6 +96,7 @@ public final class DamageChecks {
     }
 
     static void post(LivingDamageEvent.Post event) {
+        if (PENDING.isEmpty()) return;
         var trace = PENDING.remove(event.getEntity().getUuid());
         if (trace == null || trace.source != event.getSource() || trace.original != event.getOriginalDamage()) return;
         try {

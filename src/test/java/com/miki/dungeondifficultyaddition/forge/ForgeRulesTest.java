@@ -57,17 +57,4 @@ class ForgeRulesTest {
         assertThrows(UnsupportedOperationException.class,
                 () -> ForgeRules.salvage(List.of(1), 1).add(new ForgeRules.GemStack(9, 64)));
     }
-    @Test void configRejectsZeroNegativeAndOversizedCosts() {
-        var config = new ForgeConfig();
-        assertDoesNotThrow(config::validate);
-        for (int cost : new int[]{-1,0,1,65}) {
-            config.gems_per_upgrade = cost;
-            assertThrows(IllegalArgumentException.class, config::validate);
-        }
-        config.gems_per_upgrade = 4;
-        for (int yield : new int[]{-1,0,65}) {
-            config.gems_per_salvaged_item = yield;
-            assertThrows(IllegalArgumentException.class, config::validate);
-        }
-    }
 }

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -17,16 +19,41 @@ final class FixedItemLevels {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Pattern LEGACY_LEVEL_KEY = Pattern.compile("level_(\\d+)");
     private final NavigableMap<Integer, List<String>> levels = new TreeMap<>();
+    private List<CompiledRule> compiled = List.of();
+    // Config-local and bounded: reloading rules never reuses old lookup results.
+    private final Map<String, Integer> resolved = new LinkedHashMap<>(256, .75F, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<String, Integer> entry) { return size() > 4096; }
+    };
+    private record CompiledRule(int level, String literal, Pattern regex) {
+        boolean matches(String itemId) {
+            return itemId.equals(literal) || (regex != null && regex.matcher(itemId).matches());
+        }
+    }
 
-    int levelFor(String itemId) {
-        for (var entry : levels.descendingMap().entrySet()) {
-            for (var pattern : entry.getValue()) {
-                if (matches(itemId, pattern)) {
-                    return entry.getKey();
-                }
+    synchronized int levelFor(String itemId) {
+        if (compiled.isEmpty()) return 0;
+        var cached = resolved.get(itemId);
+        if (cached != null) return cached;
+        int result = 0;
+        for (var rule : compiled) {
+            if (rule.matches(itemId)) {
+                result = rule.level();
+                break;
             }
         }
-        return 0;
+        resolved.put(itemId, result);
+        return result;
+    }
+
+    private void compileRules() {
+        var rules = new ArrayList<CompiledRule>();
+        for (var entry : levels.descendingMap().entrySet()) for (var text : entry.getValue()) {
+            if (text == null || text.isEmpty()) continue;
+            Pattern regex = null;
+            try { regex = Pattern.compile(text); } catch (PatternSyntaxException ignored) {}
+            rules.add(new CompiledRule(entry.getKey(), text, regex));
+        }
+        compiled = List.copyOf(rules);
     }
 
     JsonObject toJson() {
@@ -56,6 +83,7 @@ final class FixedItemLevels {
                 result.putLevel(entry.getKey(), entry.getValue());
             }
         }
+        result.compileRules();
         return result;
     }
 
@@ -105,17 +133,8 @@ final class FixedItemLevels {
                 result.levels.put(level, List.copyOf(items));
             }
         }
+        result.compileRules();
         return result;
-    }
-    private static boolean matches(String itemId, String pattern) {
-        if (pattern == null || pattern.isEmpty()) {
-            return false;
-        }
-        try {
-            return itemId.equals(pattern) || itemId.matches(pattern);
-        } catch (PatternSyntaxException ignored) {
-            return false;
-        }
     }
 
 }

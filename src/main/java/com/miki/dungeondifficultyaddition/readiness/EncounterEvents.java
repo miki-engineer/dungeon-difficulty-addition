@@ -22,8 +22,8 @@ public final class EncounterEvents {
     }
 
     private static void tick(EntityTickEvent.Pre event) {
-        if (EncounterConfig.get().active() && event.getEntity() instanceof MobEntity mob
-                && !mob.getWorld().isClient && !mob.getPersistentData().contains(Encounters.KEY)) {
+        if (event.getEntity() instanceof MobEntity mob && !mob.getWorld().isClient
+                && EncounterConfig.get().active() && !mob.getPersistentData().contains(Encounters.KEY)) {
             // First server tick avoids querying structures while a chunk is being deserialized.
             Encounters.get(mob);
         }

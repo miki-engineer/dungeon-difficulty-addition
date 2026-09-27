@@ -2,6 +2,7 @@ package com.miki.dungeondifficultyaddition.scaling;
 
 import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
 import com.miki.dungeondifficultyaddition.compat.OptionalModSupport;
+import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.dungeon_difficulty.logic.PatternMatching;
@@ -38,12 +39,13 @@ public final class AccessoryItemScaling {
 
     public static boolean isSupportedAccessory(ItemStack stack, AccessoryScalingConfig config) {
         var namespace = Registries.ITEM.getId(stack.getItem()).getNamespace();
-        return (config.scale_jewelry && DungeonDifficultyAddition.JEWELRY_MOD_ID.equals(namespace))
-                || (config.scale_relics && DungeonDifficultyAddition.RELICS_MOD_ID.equals(namespace));
+        return (config.scale_jewelry && AccessoryFamilies.jewelry(namespace))
+                || (config.scale_relics && AccessoryFamilies.relics(namespace));
     }
 
     public static boolean isBuiltInExcluded(ItemStack stack) {
-        return BUILT_IN_EXCLUSIONS.contains(Registries.ITEM.getId(stack.getItem()).toString());
+        var id = Registries.ITEM.getId(stack.getItem()).toString();
+        return BUILT_IN_EXCLUSIONS.contains(id) || AccessoryFamilies.material(id);
     }
 
     public static void applyLootLevel(ItemStack stack, int level) {
@@ -178,7 +180,7 @@ public final class AccessoryItemScaling {
 
     private static void removeFixedModifiers(ItemStack stack) {
         var vanilla = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (vanilla != null && !vanilla.modifiers().isEmpty()) {
+        if (vanilla != null && vanilla.modifiers().stream().anyMatch(entry -> isFixedModifier(entry.modifier()))) {
             var builder = AttributeModifiersComponent.builder();
             for (var entry : vanilla.modifiers()) {
                 if (!isFixedModifier(entry.modifier())) {
@@ -314,8 +316,7 @@ public final class AccessoryItemScaling {
             return false;
         }
         var namespace = Registries.ITEM.getId(stack.getItem()).getNamespace();
-        return DungeonDifficultyAddition.JEWELRY_MOD_ID.equals(namespace)
-                || DungeonDifficultyAddition.RELICS_MOD_ID.equals(namespace);
+        return AccessoryFamilies.accessory(namespace);
     }
 
     private static void ensureCuriosRoll(ItemStack stack) {

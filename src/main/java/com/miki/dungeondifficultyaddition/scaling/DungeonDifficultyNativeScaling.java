@@ -89,7 +89,8 @@ final class DungeonDifficultyNativeScaling {
             return ItemScaling.isScaled(stack);
         }
 
-        var beforeScaling = describeAttributes(stack);
+        boolean diagnostic = DIAGNOSTIC_ITEMS.contains(itemId) && !LOGGED_DIAGNOSTICS.contains(itemId);
+        var beforeScaling = diagnostic ? describeAttributes(stack) : List.<String>of();
 
         var inferred = inferKindAndSlots(stack);
         if (inferred == null) {
@@ -115,7 +116,7 @@ final class DungeonDifficultyNativeScaling {
                 modifiers,
                 result.level()
         );
-        if (DIAGNOSTIC_ITEMS.contains(itemId) && LOGGED_DIAGNOSTICS.add(itemId)) {
+        if (diagnostic && LOGGED_DIAGNOSTICS.add(itemId)) {
             LOGGER.info(
                     "Fixed scaling diagnostic: item={}, class={}, level={}, dynamic_defaults={}, rules={}, before={}, after={}, marked_scaled={}",
                     itemId,

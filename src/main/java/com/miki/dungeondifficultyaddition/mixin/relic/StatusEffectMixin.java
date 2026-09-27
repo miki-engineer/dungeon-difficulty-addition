@@ -1,6 +1,6 @@
 package com.miki.dungeondifficultyaddition.mixin.relic;
 
-import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
+import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.relic.RelicEffectScaling;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -25,7 +25,7 @@ public abstract class StatusEffectMixin {
     ) {
         var level = RelicEffectScaling.currentLevel();
         var effectId = Registries.STATUS_EFFECT.getId((StatusEffect) (Object) this);
-        if (level > 0 && DungeonDifficultyAddition.RELICS_MOD_ID.equals(effectId.getNamespace())) {
+        if (level > 0 && AccessoryFamilies.relics(effectId.getNamespace())) {
             var attributeId = attributeInstance.getAttribute().getKey()
                     .map(key -> key.getValue().toString())
                     .orElse("");

@@ -7,6 +7,29 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FixedItemLevelsTest {
+    @Test void cachedHitsAndMissesDoNotLeakAcrossReloadedConfigs() {
+        var first = FixedItemLevels.fromJson(json("{\"levels\":{\"3\":[\"minecraft:shield\"]}}"));
+        for (int i = 0; i < 100; i++) {
+            assertEquals(3, first.levelFor("minecraft:shield"));
+            assertEquals(0, first.levelFor("minecraft:bow"));
+        }
+        var second = FixedItemLevels.fromJson(json("{\"levels\":{\"5\":[\"minecraft:bow\"]}}"));
+        assertEquals(0, second.levelFor("minecraft:shield"));
+        assertEquals(5, second.levelFor("minecraft:bow"));
+    }
+
+    @Test void boundedCacheEvictionPreservesRuleResults() {
+        var rules = FixedItemLevels.fromJson(json("{\"levels\":{\"7\":[\"mod:.*\"]}}"));
+        for (int i = 0; i < 5000; i++) assertEquals(7, rules.levelFor("mod:item_" + i));
+        assertEquals(7, rules.levelFor("mod:item_0"));
+        assertEquals(0, rules.levelFor("other:item_0"));
+    }
+
+    @Test void malformedRegexStillMatchesItsExactLiteralAsBefore() {
+        var rules = FixedItemLevels.fromJson(json("{\"levels\":{\"2\":[\"[\"]}}"));
+        assertEquals(2, rules.levelFor("["));
+        assertEquals(0, rules.levelFor("minecraft:shield"));
+    }
     private static JsonObject json(String value) {
         return JsonParser.parseString(value).getAsJsonObject();
     }

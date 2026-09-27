@@ -1,17 +1,10 @@
 package com.miki.dungeondifficultyaddition.readiness;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.neoforged.fml.loading.FMLPaths;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Files;
+import com.miki.dungeondifficultyaddition.config.ModSettings;
 import java.util.List;
 
-/** Separate file so existing accessory settings and pack balance stay intact. Restart to reload. */
+/** The encounters section of settings.json. Restart to reload. */
 public final class EncounterConfig {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static EncounterConfig instance;
     public Readiness player_readiness = new Readiness();
     public List<String> scopes = List.of("dungeon", "heroic");
     public int max_level = 1000;
@@ -26,31 +19,9 @@ public final class EncounterConfig {
         public double maximum_outgoing_reduction = 0.90;
     }
 
-    public static synchronized EncounterConfig get() {
-        if (instance == null) {
-            var path = FMLPaths.CONFIGDIR.get().resolve("dungeon_difficulty_addition/encounters.json");
-            try {
-                if (Files.exists(path)) {
-                    try (var reader = Files.newBufferedReader(path)) {
-                        instance = GSON.fromJson(reader, EncounterConfig.class);
-                    }
-                    if (instance == null) throw new IllegalArgumentException("Empty encounters config");
-                    instance.validate();
-                } else {
-                    instance = new EncounterConfig();
-                    Files.createDirectories(path.getParent());
-                    try (var writer = Files.newBufferedWriter(path)) { GSON.toJson(instance, writer); }
-                }
-            } catch (Exception exception) {
-                instance = new EncounterConfig();
-                LoggerFactory.getLogger("dungeon_difficulty_addition").error(
-                        "Could not load encounters.json; readiness disabled. File preserved.", exception);
-            }
-        }
-        return instance;
-    }
+    public static EncounterConfig get() { return ModSettings.get().encounters(); }
 
-    void validate() {
+    public void validate() {
         if (player_readiness == null || scopes == null
                 || scopes.stream().anyMatch(scope -> scope == null || scope.isBlank())
                 || max_level < 1 || max_level > 100000

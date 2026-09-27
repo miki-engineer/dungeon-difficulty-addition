@@ -30,35 +30,31 @@ public final class ItemLevelDecoration implements IItemDecorator {
         }
         var numeral = labels.computeIfAbsent(level, RomanNumerals::format);
         if (numeral.isEmpty()) return false;
-        int textWidth = Math.max(1, font.getWidth(numeral));
-        float scale = Math.min(.60F, 11F / textWidth);
-        int badgeWidth = Math.max(7, (int) Math.ceil(textWidth * scale) + 4);
+        // Center the seven visible capital rows without an upward baseline correction.
+        // The advance also includes one trailing spacing pixel that must not affect centering.
+        int inkWidth = Math.max(1, font.getWidth(numeral) - 1);
+        float textScale = Math.min(.60F, 11F / inkWidth);
+        int badgeWidth = Math.max(7, (int) Math.ceil(inkWidth * textScale) + 4);
         var matrices = context.getMatrices();
         matrices.push();
         try {
             matrices.translate(x, y, 200);
-            // Keep the entire framed badge below 9 x 5.4 slot pixels, including its shadow.
             matrices.scale(BADGE_SCALE, BADGE_SCALE, 1);
             drawBadge(context, badgeWidth);
-            matrices.translate((badgeWidth - textWidth * scale) / 2F, 1.5F, 1);
-            matrices.scale(scale, scale, 1);
-            context.drawText(font, numeral, 0, 0, 0xFFFFE4A3, true);
+            matrices.translate((badgeWidth - inkWidth * textScale) / 2F,
+                    (8F - 7F * textScale) / 2F, 1);
+            matrices.scale(textScale, textScale, 1);
+            context.drawText(font, numeral, 0, 0, 0xFFFFF4D6, false);
         } finally {
             matrices.pop();
         }
         return true;
     }
     private static void drawBadge(DrawContext context, int width) {
-        // An eight-pixel-high, clipped-corner metal plaque. Lower slot overlays remain free.
-        context.fill(1, 1, width, 9, 0xA0000000);
-        context.fill(1, 0, width - 1, 8, 0xFF211B20);
-        context.fill(0, 1, width, 7, 0xFF211B20);
-        context.fill(1, 0, width - 1, 1, 0xFFE8C78C);
-        context.fill(0, 1, 1, 7, 0xFFB69155);
-        context.fill(width - 1, 1, width, 7, 0xFF725137);
-        context.fill(1, 7, width - 1, 8, 0xFF725137);
-        context.fill(1, 1, width - 1, 3, 0xFF3D3540);
-        context.fill(1, 3, width - 1, 7, 0xFF25212B);
-        context.fill(1, 1, 2, 2, 0xFFFFDF9E);
+        // Original compact footprint; the numeral is centered within the eight-pixel plate.
+        context.fill(0, 1, width, 7, 0xFF806445);
+        context.fill(1, 0, width - 1, 1, 0xFFD6B77A);
+        context.fill(1, 7, width - 1, 8, 0xFF806445);
+        context.fill(1, 1, width - 1, 7, 0xFF17151C);
     }
 }

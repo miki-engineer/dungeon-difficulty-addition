@@ -1,6 +1,6 @@
 package com.miki.dungeondifficultyaddition.relic;
 
-import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
+import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
 import net.dungeon_difficulty.config.Config;
@@ -116,7 +116,7 @@ public final class RelicEffectScaling {
         var spellId = spellEntry.getKey()
                 .map(key -> key.getValue())
                 .orElse(null);
-        if (spellId == null || !DungeonDifficultyAddition.RELICS_MOD_ID.equals(spellId.getNamespace())) {
+        if (spellId == null || !AccessoryFamilies.relics(spellId.getNamespace())) {
             return 0;
         }
 
@@ -134,7 +134,7 @@ public final class RelicEffectScaling {
         }
 
         var itemId = Registries.ITEM.getId(stack.getItem());
-        if (!DungeonDifficultyAddition.RELICS_MOD_ID.equals(itemId.getNamespace())) {
+        if (!AccessoryFamilies.relics(itemId.getNamespace())) {
             return 0;
         }
 

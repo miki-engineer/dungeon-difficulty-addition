@@ -56,7 +56,8 @@ public final class AnvilSalvageEntity extends Entity {
         if (getWorld().isClient) return;
         if (stack().isEmpty()) { discard(); return; }
         if (!getWorld().getBlockState(anchor).isIn(BlockTags.ANVIL)) release();
-        else setPosition(anchor.getX() + .5, anchor.getY() + 1.025, anchor.getZ() + .5);
+        else if (getX() != anchor.getX() + .5 || getY() != anchor.getY() + 1.025 || getZ() != anchor.getZ() + .5)
+            setPosition(anchor.getX() + .5, anchor.getY() + 1.025, anchor.getZ() + .5);
     }
     public boolean canUse(PlayerEntity player) {
         return !isRemoved() && !player.isSpectator() && player.getAbilities().allowModifyWorld
@@ -75,7 +76,7 @@ public final class AnvilSalvageEntity extends Entity {
         if (kind == null || !ForgeRules.validLevel(level)) return;
         var next = progress.strike(world.getTime());
         if (next == progress) return;
-        var dismantledItem = stack().copy();
+        var dismantledItem = next.complete() ? stack().copy() : ItemStack.EMPTY;
         progress = next;
         dataTracker.set(HITS, progress.hits());
         if (next.complete()) {

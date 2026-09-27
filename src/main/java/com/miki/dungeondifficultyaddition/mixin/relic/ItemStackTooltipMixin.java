@@ -1,8 +1,9 @@
 package com.miki.dungeondifficultyaddition.mixin.relic;
 
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
-import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
+import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.relic.RelicEffectScaling;
+import com.miki.dungeondifficultyaddition.relic.TooltipNumbers;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.dungeon_difficulty.logic.ItemScaling;
@@ -31,12 +32,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Mixin(ItemStack.class)
 public abstract class ItemStackTooltipMixin {
-    private static JsonObject dungeonDifficultyAddition$relicEffects;
+    private static final Map<String, JsonObject> dungeonDifficultyAddition$relicEffects = new LinkedHashMap<>();
+    private static final Map<String, Long> dungeonDifficultyAddition$nextEffectsRead = new LinkedHashMap<>();
 
     @Inject(method = "getTooltip", at = @At("RETURN"))
     private void dungeonDifficultyAddition$appendScalingTooltip(
@@ -52,8 +52,7 @@ public abstract class ItemStackTooltipMixin {
 
         var stack = (ItemStack) (Object) this;
         var itemId = Registries.ITEM.getId(stack.getItem());
-        if (!DungeonDifficultyAddition.JEWELRY_MOD_ID.equals(itemId.getNamespace())
-                && !DungeonDifficultyAddition.RELICS_MOD_ID.equals(itemId.getNamespace())) {
+        if (!AccessoryFamilies.accessory(itemId.getNamespace())) {
             return;
         }
 
@@ -85,7 +84,7 @@ public abstract class ItemStackTooltipMixin {
 
         for (var spellIdString : spellContainer.spell_ids()) {
             var spellId = Identifier.of(spellIdString);
-            if (!DungeonDifficultyAddition.RELICS_MOD_ID.equals(spellId.getNamespace())) {
+            if (!AccessoryFamilies.relics(spellId.getNamespace())) {
                 continue;
             }
 
@@ -249,7 +248,7 @@ public abstract class ItemStackTooltipMixin {
             String effectId,
             int level
     ) {
-        var effects = dungeonDifficultyAddition$relicEffects();
+        var effects = dungeonDifficultyAddition$relicEffects(effectId);
         if (effects == null || !effects.has(effectId)) {
             return;
         }
@@ -279,34 +278,28 @@ public abstract class ItemStackTooltipMixin {
     }
 
     private static String dungeonDifficultyAddition$replaceFirstKnownBonus(String line, Map<String, String> replacements) {
-        for (var replacement : replacements.entrySet()) {
-            var original = replacement.getKey();
-            var trailingBoundary = original.endsWith("%")
-                    ? "(?![\\d.])"
-                    : "(?![\\d.%])";
-            var valuePattern = Pattern.compile(
-                    "(?<![\\d.-])" + Pattern.quote(original) + trailingBoundary
-            );
-            var matcher = valuePattern.matcher(line);
-            if (matcher.find()) {
-                return matcher.replaceFirst(Matcher.quoteReplacement(replacement.getValue()));
-            }
-        }
-
-        return line;
+        return TooltipNumbers.replaceFirst(line, replacements);
     }
 
-    private static JsonObject dungeonDifficultyAddition$relicEffects() {
-        if (dungeonDifficultyAddition$relicEffects != null) {
-            return dungeonDifficultyAddition$relicEffects;
-        }
+    private static JsonObject dungeonDifficultyAddition$relicEffects(String effectId) {
+        var id = Identifier.tryParse(effectId);
+        var directory = id == null ? null : AccessoryFamilies.effectsDirectory(id.getNamespace());
+        if (directory == null) return null;
+        var cached = dungeonDifficultyAddition$relicEffects.get(directory);
+        if (cached != null) return cached;
 
-        var path = FMLPaths.CONFIGDIR.get().resolve("relics").resolve("effects.json");
+        long now = System.nanoTime();
+        var nextRead = dungeonDifficultyAddition$nextEffectsRead.get(directory);
+        if (nextRead != null && now - nextRead < 0) return null;
+        dungeonDifficultyAddition$nextEffectsRead.put(directory, now + java.util.concurrent.TimeUnit.SECONDS.toNanos(5));
+
+        var path = FMLPaths.CONFIGDIR.get().resolve(directory).resolve("effects.json");
         try (var reader = Files.newBufferedReader(path)) {
             var root = JsonParser.parseReader(reader).getAsJsonObject();
-            dungeonDifficultyAddition$relicEffects = root.getAsJsonObject("effects");
-            return dungeonDifficultyAddition$relicEffects;
-        } catch (IOException | IllegalStateException exception) {
+            var effects = root.getAsJsonObject("effects");
+            if (effects != null) dungeonDifficultyAddition$relicEffects.put(directory, effects);
+            return effects;
+        } catch (IOException | IllegalStateException | com.google.gson.JsonParseException exception) {
             return null;
         }
     }

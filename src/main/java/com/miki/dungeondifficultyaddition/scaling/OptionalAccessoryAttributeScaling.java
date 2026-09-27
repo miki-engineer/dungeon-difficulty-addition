@@ -16,7 +16,7 @@ final class OptionalAccessoryAttributeScaling {
 
     static void removeFixedModifiers(ItemStack stack) {
         var attributes = stack.get(AccessoriesDataComponents.ATTRIBUTES);
-        if (attributes == null || attributes.modifiers().isEmpty()) {
+        if (attributes == null || attributes.modifiers().stream().noneMatch(entry -> AccessoryItemScaling.isFixedModifier(entry.modifier()))) {
             return;
         }
         var builder = AccessoryItemAttributeModifiers.builder().showInTooltip(attributes.showInTooltip());

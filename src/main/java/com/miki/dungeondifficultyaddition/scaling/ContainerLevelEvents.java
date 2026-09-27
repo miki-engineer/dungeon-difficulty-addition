@@ -26,9 +26,9 @@ public final class ContainerLevelEvents {
     }
 
     private static void update(ServerPlayerEntity player, ScreenHandler handler) {
+        if (!(handler instanceof GenericContainerScreenHandler || handler instanceof ShulkerBoxScreenHandler)) return;
         var config = AccessoryScalingConfig.get();
-        if (!config.enabled || !config.minimum_equipment_level_enabled
-                || !(handler instanceof GenericContainerScreenHandler || handler instanceof ShulkerBoxScreenHandler)) return;
+        if (!config.enabled || !config.minimum_equipment_level_enabled) return;
         boolean changed = false;
         for (var slot : handler.slots) {
             if (slot.inventory == player.getInventory()) continue;
@@ -36,6 +36,7 @@ public final class ContainerLevelEvents {
             // Existing dungeon levels are authoritative; do not pre-empt location-aware loot generation.
             if (!AccessoryItemScaling.needsMinimumLevel(stack)) continue;
             AccessoryItemScaling.enforceFixedLevel(stack);
+            if (net.dungeon_difficulty.logic.ItemScaling.getScaleFactor(stack) <= 0) continue;
             slot.markDirty();
             changed = true;
         }

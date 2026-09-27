@@ -45,7 +45,8 @@ public final class LevelGemItem extends Item {
     public static int level(ItemStack stack) {
         if (!(stack.getItem() instanceof LevelGemItem)) return 0;
         var data = stack.get(DataComponentTypes.CUSTOM_DATA);
-        int level = data == null ? 0 : data.copyNbt().getInt(LEVEL);
+        // Read only: no need to copy the compound for every rendered icon or tooltip.
+        int level = data == null ? 0 : data.getNbt().getInt(LEVEL);
         return ForgeRules.validLevel(level) ? level : 0;
     }
 
