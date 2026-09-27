@@ -8,14 +8,19 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Rarity;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 public final class LevelGemItem extends Item {
     private static final String LEVEL = "dungeon_difficulty_addition.gem_level";
     // Installed by client setup; dedicated servers never reference client input classes.
     private static BooleanSupplier detailsKeyDown = () -> false;
     public static void setDetailsKeyCheck(BooleanSupplier check) { detailsKeyDown = check; }
+    private static Function<Text, List<Text>> tooltipWrapper = List::of;
+    public static void setTooltipWrapper(Function<Text, List<Text>> wrapper) { tooltipWrapper = wrapper; }
+    private static void addWrapped(List<Text> tooltip, Text text) { tooltip.addAll(tooltipWrapper.apply(text)); }
     private final GemKind kind;
     private final boolean fragment;
 
@@ -28,7 +33,8 @@ public final class LevelGemItem extends Item {
     }
 
     public LevelGemItem(GemKind kind, boolean fragment) {
-        super(new Settings().maxCount(64).component(DataComponentTypes.CUSTOM_DATA, data(1)));
+        super(new Settings().maxCount(64).rarity(fragment ? Rarity.COMMON : Rarity.UNCOMMON)
+                .component(DataComponentTypes.CUSTOM_DATA, data(1)));
         this.kind = kind;
         this.fragment = fragment;
     }
@@ -70,24 +76,28 @@ public final class LevelGemItem extends Item {
     }
 
     @Override public Text getName(ItemStack stack) {
-        var name = Text.translatable("item.dungeon_difficulty_addition." + kind.id()
+        return Text.translatable("item.dungeon_difficulty_addition." + kind.id()
                 + (fragment ? "_level_fragment" : "_level_gem"));
-        return Text.translatable("item.dungeon_difficulty_addition.levelled_essence_name",
-                name, RomanNumerals.format(level(stack)));
     }
 
     @Override public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        // Match Dungeon Difficulty's presentation without assigning native equipment scaling.
+        int essenceLevel = level(stack);
+        if (essenceLevel > 0) {
+            tooltip.add(Text.translatable("item.power.level", essenceLevel)
+                    .formatted(net.minecraft.entity.attribute.EntityAttribute.Category.POSITIVE.getFormatting(true)));
+        }
         if (fragment) {
-            tooltip.add(Text.translatable("tooltip.dungeon_difficulty_addition.fragment.description").formatted(Formatting.GRAY));
+            addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.fragment.description").formatted(Formatting.GRAY));
             return;
         }
-        tooltip.add(Text.translatable("tooltip.dungeon_difficulty_addition.ascension.description").formatted(Formatting.GRAY));
+        addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.description").formatted(Formatting.GRAY));
         tooltip.add(Text.empty());
         if (detailsKeyDown.getAsBoolean()) {
-            tooltip.add(Text.translatable("tooltip.dungeon_difficulty_addition.ascension.use." + kind.id()).formatted(Formatting.GRAY));
-            tooltip.add(Text.translatable("tooltip.dungeon_difficulty_addition.ascension.limit").formatted(Formatting.DARK_GRAY));
+            addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.use." + kind.id()).formatted(Formatting.GRAY));
+            addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.limit").formatted(Formatting.DARK_GRAY));
         } else {
-            tooltip.add(Text.translatable("tooltip.dungeon_difficulty_addition.hold_shift").formatted(Formatting.DARK_GRAY));
+            addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.hold_shift").formatted(Formatting.DARK_GRAY));
         }
     }
 }
