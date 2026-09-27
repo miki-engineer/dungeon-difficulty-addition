@@ -9,6 +9,7 @@ com.miki.dungeondifficultyaddition
 ├── scaling    Item levels, attributes, previews, and optional scaling adapters
 ├── relic      Active relic effects and spell scaling context
 ├── readiness  Encounter levels, equipment readiness, damage penalties, and debug commands
+├── forge      Vanilla-anvil salvage interactions, persistent display entity, tiered hammers and typed gems
 ├── compat     Optional-mod detection
 └── mixin      Game integration hooks, grouped by item / loot / accessory / relic / client
 ```
@@ -22,6 +23,7 @@ Keep gameplay decisions in the feature packages and use mixins as integration ho
 - `/dda give` uses the same item scaler and respects configured fixed levels.
 - Relic spell hooks share the active scaling context for runtime effects and tooltips.
 - Readiness modifies the existing incoming damage event; it does not generate a second hit.
+- Anvil salvaging runs on the server; an anchored entity stores the equipment and hit progress. Client-only item rendering lives in `forge.client`. No custom block or menu is registered. See [RUNIC_ANVIL.md](RUNIC_ANVIL.md) for controls, configuration and the test checklist.
 
 `FixedItemLevels` owns rule parsing and matching without depending on game registries. `ItemLevelData` owns fixed/manual ownership markers stored on items. Neither helper owns gameplay formulas.
 

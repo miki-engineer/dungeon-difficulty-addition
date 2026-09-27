@@ -11,6 +11,7 @@ import net.spell_engine.internals.SpellExecution;
 import net.spell_engine.internals.delivery.SpellDelivery;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Desc;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -19,13 +20,10 @@ import java.util.function.Consumer;
 
 @Mixin(value = SpellDelivery.class, remap = false)
 public abstract class SpellDeliveryMixin {
-    private static final String DELIVER_METHOD =
-            "deliver(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/Holder;"
-                    + "Lnet/minecraft/world/entity/LivingEntity;Ljava/util/List;"
-                    + "Lnet/spell_engine/internals/SpellExecution$ImpactContext;"
-                    + "Lnet/minecraft/world/phys/Vec3;Ljava/util/function/Consumer;ZZ)Z";
-
-    @Inject(method = DELIVER_METHOD, at = @At("HEAD"), remap = false)
+    // Class literals are remapped with the JAR, unlike hard-coded production descriptors.
+    @Inject(target = @Desc(value = "deliver", args = {World.class, RegistryEntry.class, LivingEntity.class,
+            List.class, SpellExecution.ImpactContext.class, Vec3d.class, Consumer.class, boolean.class, boolean.class},
+            ret = boolean.class), at = @At("HEAD"), remap = false)
     private static void dungeonDifficultyAddition$captureDeliveredRelicLevel(
             World world,
             RegistryEntry<Spell> spellEntry,
@@ -41,7 +39,9 @@ public abstract class SpellDeliveryMixin {
         RelicEffectScaling.push(caster instanceof PlayerEntity player ? player : null, spellEntry);
     }
 
-    @Inject(method = DELIVER_METHOD, at = @At("RETURN"), remap = false)
+    @Inject(target = @Desc(value = "deliver", args = {World.class, RegistryEntry.class, LivingEntity.class,
+            List.class, SpellExecution.ImpactContext.class, Vec3d.class, Consumer.class, boolean.class, boolean.class},
+            ret = boolean.class), at = @At("RETURN"), remap = false)
     private static void dungeonDifficultyAddition$clearDeliveredRelicLevel(
             World world,
             RegistryEntry<Spell> spellEntry,

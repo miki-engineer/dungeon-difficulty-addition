@@ -166,6 +166,16 @@ public final class AccessoryItemScaling {
                 || DungeonDifficultyNativeScaling.isEquipment(stack));
     }
 
+    /** Workstation eligibility is independent of the automatic minimum-level switch. */
+    public static boolean isForgeEquipment(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || isBuiltInExcluded(stack)) return false;
+        if (OptionalModSupport.isLoaded(DungeonDifficultyAddition.SPELL_ENGINE_MOD_ID)
+                && OptionalSpellEngineSupport.isSpellBookOrScroll(stack)) return false;
+        var config = AccessoryScalingConfig.get();
+        return config.enabled && (isSupportedAccessory(stack, config)
+                || DungeonDifficultyNativeScaling.isEquipment(stack));
+    }
+
     private static void removeFixedModifiers(ItemStack stack) {
         var vanilla = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (vanilla != null && !vanilla.modifiers().isEmpty()) {

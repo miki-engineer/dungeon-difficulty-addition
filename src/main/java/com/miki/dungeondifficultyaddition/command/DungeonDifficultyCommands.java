@@ -50,12 +50,14 @@ public final class DungeonDifficultyCommands {
             return 0;
         }
 
+        // Inventory insertion consumes this stack; snapshot its name before it becomes empty/air.
+        var itemName = stack.getName().getString();
         if (!player.giveItemStack(stack)) {
             player.dropItem(stack, false);
         }
         var fixedLevelApplied = appliedLevel != level;
         source.sendFeedback(() -> Text.literal("Gave " + player.getName().getString()
-                        + " " + stack.getName().getString() + " at level " + appliedLevel + "."
+                        + " " + itemName + " at level " + appliedLevel + "."
                         + (fixedLevelApplied ? " The configured fixed level overrode the requested level." : "")),
                 true);
         return 1;

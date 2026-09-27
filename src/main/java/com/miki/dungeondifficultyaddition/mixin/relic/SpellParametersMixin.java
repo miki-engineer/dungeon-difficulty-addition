@@ -9,13 +9,14 @@ import net.spell_engine.api.spell.Spell;
 import net.spell_engine.internals.SpellParameters;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Desc;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = SpellParameters.class, remap = false)
 public abstract class SpellParametersMixin {
     @Inject(
-            method = "getCooldownDuration(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/core/Holder;Lnet/minecraft/world/item/ItemStack;)F",
+            target = @Desc(value = "getCooldownDuration", args = {LivingEntity.class, RegistryEntry.class, ItemStack.class}, ret = float.class),
             at = @At("RETURN"),
             cancellable = true,
             remap = false

@@ -41,6 +41,8 @@ repositories {
 }
 
 dependencies {
+    // Optional local development dependencies; never included in the published mod JAR.
+    modRuntimeOnly fileTree(dir: "run/dependencies", include: ["*.jar"])
     minecraft "net.minecraft:minecraft:${minecraft_version}"
     mappings loom.layered {
         it.mappings("net.fabricmc:yarn:${yarn_mappings}:v2")
@@ -57,16 +59,30 @@ dependencies {
     modCompileOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
     modCompileOnly "maven.modrinth:tiny-config:${tiny_config_version}"
     modCompileOnly "io.wispforest:accessories-neoforge:${accessories_version}"
+    // Accessories widens vanilla classes with these interfaces in the dev mappings.
+    modCompileOnly "io.wispforest:owo-lib-neoforge:0.12.15.1-beta.6+1.21"
     compileOnly "io.wispforest:endec:0.1.8"
+    forgeRuntimeLibrary "io.wispforest:endec:0.1.8"
+    forgeRuntimeLibrary "io.wispforest.endec:gson:0.1.5"
+    forgeRuntimeLibrary "io.wispforest.endec:netty:0.1.4"
+    forgeRuntimeLibrary "io.wispforest.endec:jankson:0.1.5"
+    forgeRuntimeLibrary "blue.endless:jankson:1.2.3"
     modCompileOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
     modCompileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.27.0.336"
     modCompileOnly "dev.emi:emi-neoforge:1.1.24+1.21.1:api"
     modRuntimeOnly "maven.modrinth:${dungeon_difficulty_modrinth_project}:${dungeon_difficulty_modrinth_version}"
-    modRuntimeOnly "maven.modrinth:${jewelry_modrinth_project}:${jewelry_modrinth_version}"
-    modRuntimeOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
+    if (!project.hasProperty("anvilPreview")) {
+        modRuntimeOnly "maven.modrinth:${jewelry_modrinth_project}:${jewelry_modrinth_version}"
+    }
+    if (fileTree(dir: "run/dependencies", include: ["relics-*.jar"]).isEmpty()) {
+        modRuntimeOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
+    }
     modRuntimeOnly "maven.modrinth:tiny-config:${tiny_config_version}"
     modRuntimeOnly "io.wispforest:accessories-neoforge:${accessories_version}"
-    modRuntimeOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
+    modRuntimeOnly "io.wispforest:owo-lib-neoforge:0.12.15.1-beta.6+1.21"
+    if (fileTree(dir: "run/dependencies", include: ["spell_engine-*.jar"]).isEmpty()) {
+        modRuntimeOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
+    }
 }
 
 processResources {
