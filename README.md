@@ -25,8 +25,8 @@ Optional integrations:
 
 - Jewelry 2.3.2 or newer
 - Relics (RPG Series) 1.3.0 or newer
-- Additional Jewelry (`additional_rpg_jewelry`; compatibility checked against 2.3.1)
-- More Relics (`more_relics`; compatibility checked against 1.3.1)
+- Additional Jewelry
+- More Relics
 - Spell Engine 1.10.1 or newer
 - Curios
 - JEI or EMI
