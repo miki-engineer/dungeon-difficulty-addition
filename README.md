@@ -31,13 +31,6 @@ Optional integrations:
 - Curios
 - JEI or EMI
 
-Additional Jewelry shares `scaling.scale_jewelry`; More Relics shares `scaling.scale_relics`.
-Their equipment supports loot levels, the level-1 minimum, Roman badges, and accessory
-salvage/ascension upgrades. Raw aquamarine and malachite are crafting materials and remain
-excluded. More Relics uses the existing Spell Engine scaling hooks; custom hard-coded
-effect mechanics outside those hooks are not automatically scaled. Add-ons still require
-their own base mods and dependencies.
-
 ## Installation
 
 1. Install NeoForge and Dungeon Difficulty.
@@ -53,10 +46,6 @@ config/dungeon_difficulty_addition/
 ```
 
 `settings.json` contains three sections: `scaling`, `encounters`, and `anvil`.
-Existing values migrate automatically on startup. Previous files are preserved in
-`backups/config-migration-*/`; the retired `runic_anvil.json` is archived too.
-Restart after editing settings. Invalid configs are preserved and reported instead
-of silently resetting your settings; fix the reported error before starting again.
 
 ## Command
 
@@ -132,7 +121,6 @@ These are the 2.2.0 defaults. Existing configs keep their saved values: to use t
 The cost accepts 1–39 XP levels; it is not the equipment's target level.
 `enabled` controls both salvaging and gem upgrades. Hammer level limits and durability
 are independent: gold defaults to level 3, diamond to level 5, and netherite has no salvage cap.
-Durability must increase from gold to diamond to netherite.
 
 ### Salvaging and Upgrading
 
@@ -145,13 +133,8 @@ Upgrades advance exactly one level: level 3 equipment needs a level 4 gem.
 Each upgrade consumes one gem and, by default, 5 XP levels. Fixed-level equipment cannot be upgraded.
 Sneak-right-click with an empty hand to retrieve placed equipment before salvaging finishes.
 
-Hammer recipes use `block + material + material` across the top, with two sticks
-down the center. Gold uses a gold block and two gold ingots; diamond uses a diamond
-block and two diamonds; netherite uses a netherite block and two netherite ingots.
-
 Gems and fragments show a display-only Power Level; they are not scaled equipment.
-Hold Shift for gem and hammer usage details. Badges remain on slotted items but hide
-on the stack carried by the mouse. See [Anvil salvaging](docs/RUNIC_ANVIL.md) for details.
+Hold Shift for gem and hammer usage details. 
 
 ## Fixed Item Levels
 
@@ -234,15 +217,6 @@ Damage dealt uses your main-hand item separately. With a level 0 main hand
 against a level 4 mob, `outgoing_penalty_per_level: 0.10` gives a 40% reduction.
 Set it to `0.15` for a 60% reduction instead. A level 4 or higher main hand
 removes this penalty. The reduction cannot exceed `maximum_outgoing_reduction`.
-
-These multipliers apply before armor and other defenses. Player-attributed
-projectiles and spells use the main-hand level when they hit. Set either penalty
-rate to `0` to remove that penalty.
-
-Better Combat 2.4.0 temporarily exposes the off-hand weapon as the main-hand stack
-during off-hand melee hits, so the existing check uses the striking weapon's level.
-Hands are not averaged and there is no second off-hand penalty. Creative and Spectator
-players are excluded from readiness damage penalties.
 
 ### Checking Your Settings
 
