@@ -10,15 +10,15 @@ import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.minecraft.registry.Registries;
 import net.minecraft.client.gui.screen.Screen;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import com.miki.dungeondifficultyaddition.forge.LevelGemItem;
+import com.miki.dungeondifficultyaddition.forge.ForgeTooltips;
 
 @EventBusSubscriber(modid = DungeonDifficultyAddition.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class ForgeClient {
     private ForgeClient() {}
     @SubscribeEvent public static void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            LevelGemItem.setDetailsKeyCheck(Screen::hasShiftDown);
-            LevelGemItem.setTooltipWrapper(ForgeClient::wrapTooltip);
+            ForgeTooltips.setDetailsKeyCheck(Screen::hasShiftDown);
+            ForgeTooltips.setTooltipWrapper(ForgeClient::wrapTooltip);
         });
     }
     private static java.util.List<net.minecraft.text.Text> wrapTooltip(net.minecraft.text.Text text) {

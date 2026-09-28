@@ -10,17 +10,10 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Rarity;
 import java.util.List;
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
+import static com.miki.dungeondifficultyaddition.forge.ForgeTooltips.addWrapped;
 
 public final class LevelGemItem extends Item {
     private static final String LEVEL = "dungeon_difficulty_addition.gem_level";
-    // Installed by client setup; dedicated servers never reference client input classes.
-    private static BooleanSupplier detailsKeyDown = () -> false;
-    public static void setDetailsKeyCheck(BooleanSupplier check) { detailsKeyDown = check; }
-    private static Function<Text, List<Text>> tooltipWrapper = List::of;
-    public static void setTooltipWrapper(Function<Text, List<Text>> wrapper) { tooltipWrapper = wrapper; }
-    private static void addWrapped(List<Text> tooltip, Text text) { tooltip.addAll(tooltipWrapper.apply(text)); }
     private final GemKind kind;
     private final boolean fragment;
 
@@ -86,6 +79,7 @@ public final class LevelGemItem extends Item {
         if (essenceLevel > 0) {
             tooltip.add(Text.translatable("item.power.level", essenceLevel)
                     .formatted(net.minecraft.entity.attribute.EntityAttribute.Category.POSITIVE.getFormatting(true)));
+            tooltip.add(Text.empty());
         }
         if (fragment) {
             addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.fragment.description").formatted(Formatting.GRAY));
@@ -93,11 +87,11 @@ public final class LevelGemItem extends Item {
         }
         addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.description").formatted(Formatting.GRAY));
         tooltip.add(Text.empty());
-        if (detailsKeyDown.getAsBoolean()) {
+        if (ForgeTooltips.showDetails()) {
             addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.use." + kind.id()).formatted(Formatting.GRAY));
             addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.limit").formatted(Formatting.DARK_GRAY));
         } else {
-            addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.hold_shift").formatted(Formatting.DARK_GRAY));
+            ForgeTooltips.addHint(tooltip);
         }
     }
 }

@@ -11,6 +11,7 @@ A NeoForge mod for Minecraft 1.21.1 that expands
 - Supports fixed levels for boss drops, crafted items, and other modded equipment.
 - Supports JEI and EMI recipe-output previews.
 - Optionally applies dungeon damage penalties based on equipped item levels.
+- Salvage leveled equipment on vanilla anvils and upgrade equipment with Ascension Gems.
 
 Level `0` is the base item. Scaling bonuses begin at level `1`.
 
@@ -24,9 +25,18 @@ Optional integrations:
 
 - Jewelry 2.3.2 or newer
 - Relics (RPG Series) 1.3.0 or newer
+- Additional Jewelry (`additional_rpg_jewelry`; compatibility checked against 2.3.1)
+- More Relics (`more_relics`; compatibility checked against 1.3.1)
 - Spell Engine 1.10.1 or newer
 - Curios
 - JEI or EMI
+
+Additional Jewelry shares `scaling.scale_jewelry`; More Relics shares `scaling.scale_relics`.
+Their equipment supports loot levels, the level-1 minimum, Roman badges, and accessory
+salvage/ascension upgrades. Raw aquamarine and malachite are crafting materials and remain
+excluded. More Relics uses the existing Spell Engine scaling hooks; custom hard-coded
+effect mechanics outside those hooks are not automatically scaled. Add-ons still require
+their own base mods and dependencies.
 
 ## Installation
 
@@ -39,9 +49,14 @@ The configs are created in:
 ```text
 config/dungeon_difficulty_addition/
 ├── settings.json
-├── fixed_item_levels.json
-└── encounters.json
+└── fixed_item_levels.json
 ```
+
+`settings.json` contains three sections: `scaling`, `encounters`, and `anvil`.
+Existing values migrate automatically on startup. Previous files are preserved in
+`backups/config-migration-*/`; the retired `runic_anvil.json` is archived too.
+Restart after editing settings. Invalid configs are preserved and reported instead
+of silently resetting your settings; fix the reported error before starting again.
 
 ## Command
 
@@ -62,11 +77,12 @@ level, even when the command requests a different level.
 
 ## Accessory Settings
 
-`settings.json` controls accessory scaling and tooltip display:
+The `scaling` section in `settings.json` controls accessory scaling and tooltip display.
+The following is the content of that section, not the whole settings file:
 
 ```jsonc
 {
-  // Turns the mod on or off.
+  // Enables this section's scaling features, not the independent anvil/readiness systems.
   "enabled": true,
   // Gives unlevelled equipment level 1. Requires enabled = true.
   "minimum_equipment_level_enabled": true,
@@ -94,6 +110,48 @@ level, even when the command requests a different level.
 With `value: 0.1`, an item gains roughly 10% of its base value per level.
 For example, a 20% effect at level 4 becomes 28% before randomness.
 Cooldowns scale inversely, so higher levels reduce them instead.
+
+## Anvil Settings
+
+The `anvil` section in `settings.json` controls salvaging and ascension upgrades:
+
+```json
+{
+  "enabled": true,
+  "upgrade_xp_levels": 5,
+  "gold_max_level": 3,
+  "diamond_max_level": 5,
+  "gold_durability": 32,
+  "diamond_durability": 1561,
+  "netherite_durability": 2031
+}
+```
+
+These are the 2.2.0 defaults. Existing configs keep their saved values: to use the new
+5-level XP cost, set `anvil.upgrade_xp_levels` to `5` yourself, then restart.
+The cost accepts 1–39 XP levels; it is not the equipment's target level.
+`enabled` controls both salvaging and gem upgrades. Hammer level limits and durability
+are independent: gold defaults to level 3, diamond to level 5, and netherite has no salvage cap.
+Durability must increase from gold to diamond to netherite.
+
+### Salvaging and Upgrading
+
+1. Sneak-right-click a vanilla anvil with leveled equipment to place one item.
+2. Strike it three times with a suitable Salvage Hammer to receive one matching-level fragment.
+3. Craft four matching-type, matching-level fragments in four separate slots into one Ascension Gem.
+4. Put equipment on the left and its matching gem on the right of a normal anvil.
+
+Upgrades advance exactly one level: level 3 equipment needs a level 4 gem.
+Each upgrade consumes one gem and, by default, 5 XP levels. Fixed-level equipment cannot be upgraded.
+Sneak-right-click with an empty hand to retrieve placed equipment before salvaging finishes.
+
+Hammer recipes use `block + material + material` across the top, with two sticks
+down the center. Gold uses a gold block and two gold ingots; diamond uses a diamond
+block and two diamonds; netherite uses a netherite block and two netherite ingots.
+
+Gems and fragments show a display-only Power Level; they are not scaled equipment.
+Hold Shift for gem and hammer usage details. Badges remain on slotted items but hide
+on the stack carried by the mouse. See [Anvil salvaging](docs/RUNIC_ANVIL.md) for details.
 
 ## Fixed Item Levels
 
@@ -125,7 +183,8 @@ and items already held in an inventory.
 
 ## Encounter Settings
 
-`encounters.json` controls equipment requirements and dungeon damage penalties.
+The `encounters` section in `settings.json` controls equipment requirements and dungeon damage penalties.
+The example below shows this section's contents.
 This feature is **disabled by default** and is independent of accessory scaling.
 
 ```jsonc
@@ -139,9 +198,9 @@ This feature is **disabled by default** and is independent of accessory scaling.
     "unmarked_item_level": 0,
     // Adds 25% damage taken per missing readiness level.
     "incoming_penalty_per_level": 0.25,
-    // Enables the main-hand level requirement for damage dealt.
+    // Enables the hit-time weapon level requirement for damage dealt.
     "outgoing_penalty_enabled": true,
-    // Removes 10% damage dealt per missing main-hand level.
+    // Removes 10% damage dealt per missing weapon level.
     "outgoing_penalty_per_level": 0.10,
     // Limits the outgoing damage reduction to 90%.
     "maximum_outgoing_reduction": 0.90
@@ -180,10 +239,17 @@ These multipliers apply before armor and other defenses. Player-attributed
 projectiles and spells use the main-hand level when they hit. Set either penalty
 rate to `0` to remove that penalty.
 
+Better Combat 2.4.0 temporarily exposes the off-hand weapon as the main-hand stack
+during off-hand melee hits, so the existing check uses the striking weapon's level.
+Hands are not averaged and there is no second off-hand penalty. Creative and Spectator
+players are excluded from readiness damage penalties.
+
 ### Checking Your Settings
 
 Use `/dda_readiness` to see your equipped item levels, required piece count,
-readiness, and main-hand level. In Survival with cheats/operator permission,
+readiness, and both hand levels. `/dda_readiness encounter <target>` also previews
+incoming and separate main/off-hand outgoing multipliers for that mob.
+In Survival with cheats/operator permission,
 use `/dda_damage_debug on` to log your next 20 incoming or outgoing hits in chat
 and `logs/latest.log`. Use `/dda_damage_debug off` to stop early.
 

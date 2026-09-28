@@ -63,8 +63,11 @@ public final class EncounterEvents {
                     return;
                 }
                 // Explicit hit-time policy also covers attributed projectiles and spells.
+                // Better Combat 2.4.0 exposes the striking off-hand stack here during its
+                // synchronous attack (PlayerAttackHelper.swapHandAttributes). Do not
+                // apply a second penalty or average the two weapons together.
                 int weapon = EquippedLevels.level(player.getMainHandStack());
-                rule = "outgoing: " + encounter.scope() + " level=" + encounter.level() + ", main-hand level=" + weapon;
+                rule = "outgoing: " + encounter.scope() + " level=" + encounter.level() + ", hit-time weapon level=" + weapon;
                 multiplier = ReadinessMath.outgoing(encounter.level(), weapon,
                         config.outgoing_penalty_per_level, config.maximum_outgoing_reduction);
             }

@@ -2,13 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    "III",
+    "BII",
     " S ",
     " S "
   ],
   "key": {
-    "I": {
+    "B": {
       "item": "minecraft:gold_block"
+    },
+    "I": {
+      "item": "minecraft:gold_ingot"
     },
     "S": {
       "item": "minecraft:stick"

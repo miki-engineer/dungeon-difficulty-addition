@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ForgeAssetsTest {
-    @Test void hammersUsePickaxePatternWithMatchingBlocks() throws Exception {
+    @Test void hammersUseOneLeftBlockAndTwoMatchingMaterials() throws Exception {
         for (var tier : new String[]{"gold", "diamond", "netherite"}) {
             var path = "data/dungeon_difficulty_addition/recipe/" + tier + "_salvage_hammer.json";
             try (var stream = getClass().getClassLoader().getResourceAsStream(path)) {
@@ -16,11 +16,13 @@ class ForgeAssetsTest {
                 var recipe = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject();
                 var pattern = recipe.getAsJsonArray("pattern");
                 assertEquals(3, pattern.size());
-                assertEquals("III", pattern.get(0).getAsString());
+                assertEquals("BII", pattern.get(0).getAsString());
                 assertEquals(" S ", pattern.get(1).getAsString());
                 assertEquals(" S ", pattern.get(2).getAsString());
                 var key = recipe.getAsJsonObject("key");
-                assertEquals("minecraft:" + tier + "_block", key.getAsJsonObject("I").get("item").getAsString());
+                assertEquals("minecraft:" + tier + "_block", key.getAsJsonObject("B").get("item").getAsString());
+                var material = tier.equals("diamond") ? "diamond" : tier + "_ingot";
+                assertEquals("minecraft:" + material, key.getAsJsonObject("I").get("item").getAsString());
                 assertEquals("minecraft:stick", key.getAsJsonObject("S").get("item").getAsString());
                 assertEquals("dungeon_difficulty_addition:" + tier + "_salvage_hammer", recipe.getAsJsonObject("result").get("id").getAsString());
                 assertEquals(1, recipe.getAsJsonObject("result").get("count").getAsInt());

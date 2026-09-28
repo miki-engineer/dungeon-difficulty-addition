@@ -19,7 +19,7 @@
   "tooltip.dungeon_difficulty_addition.ascension.use.weapon": "Use on an Anvil to increase Weapon by 1 Level.",
   "tooltip.dungeon_difficulty_addition.ascension.use.armor": "Use on an Anvil to increase Armor by 1 Level.",
   "tooltip.dungeon_difficulty_addition.ascension.use.accessory": "Use on an Anvil to increase Accessory by 1 Level.",
-  "tooltip.dungeon_difficulty_addition.ascension.limit": "Cannot exceed this Gem's Level.",
+  "tooltip.dungeon_difficulty_addition.ascension.limit": "Gem level must be exactly one above the equipment's level.",
   "item.dungeon_difficulty_addition.accessory_level_gem.level": "Level %s Accessory Gem",
   "item.dungeon_difficulty_addition.gold_salvage_hammer": "Gold Salvage Hammer",
   "item.dungeon_difficulty_addition.diamond_salvage_hammer": "Diamond Salvage Hammer",
@@ -27,7 +27,9 @@
   "salvage.dungeon_difficulty_addition.limit": "Salvages equipment up to level %s",
   "salvage.dungeon_difficulty_addition.unlimited": "No salvage level restriction",
   "salvage.dungeon_difficulty_addition.hammer_hint": "Strike an item on an Anvil 3 times to salvage it.",
-  "salvage.dungeon_difficulty_addition.too_high": "Level %s requires a stronger hammer",
+  "salvage.dungeon_difficulty_addition.place_hint": "Sneak-right-click an anvil with leveled equipment to place it.",
+  "salvage.dungeon_difficulty_addition.too_high": "Hammer too weak! Limit: %s | Item level: %s",
   "salvage.dungeon_difficulty_addition.occupied": "This anvil already holds equipment",
-  "salvage.dungeon_difficulty_addition.progress": "Hammer strikes: %s / 3"
+  "salvage.dungeon_difficulty_addition.progress": "Salvaging: %s/3",
+  "salvage.dungeon_difficulty_addition.complete": "Salvaged! Fragment dropped."
 }

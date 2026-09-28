@@ -10,7 +10,7 @@ Uses vanilla anvils, including chipped and damaged anvils. No custom table or sa
 
 Put four same-type, same-level fragments into four separate crafting slots (inventory 2x2 or crafting table, any arrangement). This consumes one fragment per slot and produces one same-type, same-level upgrade gem. Mixed levels, mixed categories and extra ingredients do not craft.
 
-In the normal anvil screen, put equipment on the left and a matching upgrade gem on the right. Upgrades require exactly the next level: level 3 equipment + level 4 gem becomes level 4; level 2 + level 4 is rejected. One gem is consumed. The provisional XP cost is 1 level (`upgrade_xp_levels`, configurable from 1 to 39 in the `anvil` section of `settings.json`; restart to reload). Existing configs can add this key; absent means 1. Enchantments and damage are preserved, with vanilla-style optional renaming. Config-fixed equipment cannot be upgraded. Unlevelled equipment must acquire level 1 through the existing minimum-level system first.
+In the normal anvil screen, put equipment on the left and a matching upgrade gem on the right. Upgrades require exactly the next level: level 3 equipment + level 4 gem becomes level 4; level 2 + level 4 is rejected. One gem is consumed. The default XP cost is 5 levels (`upgrade_xp_levels`, configurable from 1 to 39 in the `anvil` section of `settings.json`; restart to reload). Existing configs preserve their saved cost; change it to 5 manually to adopt the 2.2.0 default. Enchantments and damage are preserved, with vanilla-style optional renaming. Config-fixed equipment cannot be upgraded. Unlevelled equipment must acquire level 1 through the existing minimum-level system first.
 
 Sneak-right-click with an empty main hand to retrieve the original equipment before completion. Breaking/removing the anvil releases the equipment. Placement and progress persist across saves. Hoppers cannot extract the displayed equipment. Progress is shared between players; each accepted strike uses the current hammer's level limit.
 
@@ -22,7 +22,9 @@ Sneak-right-click with an empty main hand to retrieve the original equipment bef
 | Diamond | 5 | 1561 |
 | Netherite | Unrestricted | 2031 |
 
-Each accepted strike costs one durability using vanilla durability rules; rejected strikes cost nothing. Creative does not consume durability. Each hammer is crafted like a pickaxe, with three matching material blocks (gold, diamond or netherite) across the top and two sticks down the center. They appear in Tools & Utilities.
+Each accepted strike costs one durability using vanilla durability rules; rejected strikes cost nothing. Creative does not consume durability. Each hammer is crafted like a pickaxe: one matching block at the top-left, two matching materials in the remaining top slots, and two sticks down the center. Gold and netherite use ingots; diamond uses diamonds. Vanilla mirrored shaped recipes also work. They appear in Tools & Utilities.
+
+Weak hammers show a red warning with the hammer limit and item level, plus a quiet failure sound, rate-limited to once per second per placed item. Accepted hits show gold progress; completion shows a green confirmation and a distinct anvil sound. Hold Shift on a hammer for placement and salvage instructions.
 
 Configure the `anvil` section in `config/dungeon_difficulty_addition/settings.json`, then restart. Keys: `enabled`, `gold_max_level`, `diamond_max_level`, `gold_durability`, `diamond_durability`, `netherite_durability`. Netherite has no configurable level cap. Invalid settings are preserved and reported without silently resetting values. Old split configs are automatically migrated and backed up on startup.
 

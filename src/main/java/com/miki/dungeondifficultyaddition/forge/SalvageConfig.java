@@ -5,7 +5,7 @@ import com.miki.dungeondifficultyaddition.config.ModSettings;
 /** Restart to reload. Netherite deliberately has no configurable level ceiling. */
 public final class SalvageConfig {
     public boolean enabled = true;
-    public int upgrade_xp_levels = 1;
+    public int upgrade_xp_levels = 5;
     public int gold_max_level = 3, diamond_max_level = 5;
     public int gold_durability = 32, diamond_durability = 1561, netherite_durability = 2031;
     public static SalvageConfig get() { return ModSettings.get().anvil(); }

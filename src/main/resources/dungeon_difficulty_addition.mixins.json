@@ -24,6 +24,7 @@
     "relic.StatusEffectMixin"
   ],
   "client": [
+    "client.HandledScreenCursorMixin",
     "client.EmiRecipeSlotMixin",
     "client.JeiRecipeSlotMixin",
     "relic.SpellTooltipMixin"

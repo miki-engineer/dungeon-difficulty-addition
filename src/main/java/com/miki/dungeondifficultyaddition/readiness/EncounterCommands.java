@@ -34,8 +34,11 @@ final class EncounterCommands {
                 var config = EncounterConfig.get().player_readiness;
                 var ready = EquippedLevels.readiness(EquippedLevels.slots(viewer));
                 reply(source, "Your incoming multiplier: " + ReadinessMath.incoming(encounter.level(), ready,
-                        config.incoming_penalty_per_level) + "; outgoing multiplier: "
+                        config.incoming_penalty_per_level) + "; main-hand outgoing multiplier: "
                         + ReadinessMath.outgoing(encounter.level(), EquippedLevels.level(viewer.getMainHandStack()),
+                        config.outgoing_penalty_per_level, config.maximum_outgoing_reduction)
+                        + "; off-hand outgoing multiplier (off-hand attacks): "
+                        + ReadinessMath.outgoing(encounter.level(), EquippedLevels.level(viewer.getOffHandStack()),
                         config.outgoing_penalty_per_level, config.maximum_outgoing_reduction)
                         + " (applied only when the corresponding readiness settings are enabled)");
             }
@@ -54,7 +57,8 @@ final class EncounterCommands {
                     + "; required items: " + EncounterConfig.get().player_readiness.required_equipped_items);
             for (var slot : slots) reply(source, slot.name() + ": " + slot.item() + " level " + slot.level());
             reply(source, "Armor/Curios readiness: " + EquippedLevels.readiness(slots)
-                    + "; main-hand level: " + EquippedLevels.level(player.getMainHandStack()));
+                    + "; main-hand level: " + EquippedLevels.level(player.getMainHandStack())
+                    + "; off-hand level: " + EquippedLevels.level(player.getOffHandStack()));
             return 1;
         } catch (RuntimeException | LinkageError exception) {
             Encounters.warn("diagnostics", exception);

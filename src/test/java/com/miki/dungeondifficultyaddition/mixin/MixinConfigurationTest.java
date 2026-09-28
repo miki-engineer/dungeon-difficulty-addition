@@ -25,7 +25,9 @@ class MixinConfigurationTest {
                     assertNotNull(loader.getResource(name.replace('.', '/') + ".class"), name);
                 }
             }
-            assertEquals(20, names.size(), "Keep all existing hooks during reorganization");
+            assertEquals(21, names.size(), "Keep existing hooks and the cursor badge rendering hook");
+            assertTrue(config.getAsJsonArray("client").asList().stream()
+                    .anyMatch(entry -> entry.getAsString().equals("client.HandledScreenCursorMixin")));
             var plugin = config.get("plugin").getAsString();
             assertNotNull(loader.getResource(plugin.replace('.', '/') + ".class"), plugin);
         }

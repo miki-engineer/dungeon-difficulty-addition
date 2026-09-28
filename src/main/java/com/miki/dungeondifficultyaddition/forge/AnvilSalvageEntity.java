@@ -16,11 +16,13 @@ import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -33,6 +35,7 @@ public final class AnvilSalvageEntity extends Entity {
     private GemKind kind;
     private int level;
     private SalvageProgress progress = new SalvageProgress(0, 0);
+    private long nextWeakHammerAlertTick;
 
     public AnvilSalvageEntity(EntityType<? extends AnvilSalvageEntity> type, World world) {
         super(type, world);
@@ -70,7 +73,14 @@ public final class AnvilSalvageEntity extends Entity {
         var held = player.getMainHandStack();
         if (!(held.getItem() instanceof SalvageHammerItem hammer)) return;
         if (!hammer.accepts(level)) {
-            player.sendMessage(Text.translatable("salvage.dungeon_difficulty_addition.too_high", level), true);
+            if (world.getTime() >= nextWeakHammerAlertTick) {
+                nextWeakHammerAlertTick = world.getTime() + 20;
+                player.sendMessage(Text.translatable("salvage.dungeon_difficulty_addition.too_high", hammer.maximumLevel(), level)
+                        .formatted(Formatting.RED), true);
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    serverPlayer.playSoundToPlayer(SoundEvents.ENTITY_VILLAGER_NO, SoundCategory.PLAYERS, .35F, 1F);
+                }
+            }
             return;
         }
         if (kind == null || !ForgeRules.validLevel(level)) return;
@@ -91,7 +101,9 @@ public final class AnvilSalvageEntity extends Entity {
         world.playSound(null, anchor, next.complete() ? SoundEvents.BLOCK_ANVIL_DESTROY : SoundEvents.BLOCK_ANVIL_USE,
                 SoundCategory.BLOCKS, .7F, next.complete() ? 1.4F : .85F + progress.hits() * .12F);
         playStrikeParticles(world, dismantledItem, next.complete());
-        if (!next.complete()) player.sendMessage(Text.translatable("salvage.dungeon_difficulty_addition.progress", progress.hits()), true);
+        player.sendMessage(next.complete()
+                ? Text.translatable("salvage.dungeon_difficulty_addition.complete").formatted(Formatting.GREEN)
+                : Text.translatable("salvage.dungeon_difficulty_addition.progress", progress.hits()).formatted(Formatting.GOLD), true);
     }
     private void playStrikeParticles(ServerWorld world, ItemStack equipment, boolean complete) {
         double x = getX(), y = getY() + .10, z = getZ();
