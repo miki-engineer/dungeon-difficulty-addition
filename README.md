@@ -116,8 +116,7 @@ The `anvil` section in `settings.json` controls salvaging and ascension upgrades
 }
 ```
 
-These are the 2.2.0 defaults. Existing configs keep their saved values: to use the new
-5-level XP cost, set `anvil.upgrade_xp_levels` to `5` yourself, then restart.
+These are the 2.2.0 defaults.
 The cost accepts 1–39 XP levels; it is not the equipment's target level.
 `enabled` controls both salvaging and gem upgrades. Hammer level limits and durability
 are independent: gold defaults to level 3, diamond to level 5, and netherite has no salvage cap.
