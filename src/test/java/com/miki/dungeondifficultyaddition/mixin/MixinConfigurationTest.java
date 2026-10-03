@@ -25,7 +25,9 @@ class MixinConfigurationTest {
                     assertNotNull(loader.getResource(name.replace('.', '/') + ".class"), name);
                 }
             }
-            assertEquals(21, names.size(), "Keep existing hooks and the cursor badge rendering hook");
+            assertEquals(23, names.size(), "Keep existing hooks and the Legendary Monsters scaling and slot hooks");
+            assertTrue(config.getAsJsonArray("mixins").asList().stream()
+                    .anyMatch(entry -> entry.getAsString().equals("loot.LegendaryMonsterScalingMixin")));
             assertTrue(config.getAsJsonArray("client").asList().stream()
                     .anyMatch(entry -> entry.getAsString().equals("client.HandledScreenCursorMixin")));
             var plugin = config.get("plugin").getAsString();

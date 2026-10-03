@@ -2,6 +2,7 @@ package com.miki.dungeondifficultyaddition.scaling;
 
 import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
 import com.miki.dungeondifficultyaddition.compat.OptionalModSupport;
+import com.miki.dungeondifficultyaddition.compat.LegendaryMonsterAttributes;
 
 import com.miki.dungeondifficultyaddition.mixin.loot.ItemScalingInvoker;
 import net.dungeon_difficulty.DungeonDifficulty;
@@ -10,11 +11,7 @@ import net.dungeon_difficulty.logic.ItemScaling;
 import net.dungeon_difficulty.logic.PatternMatching;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ArmorItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.RangedWeaponItem;
 import net.minecraft.item.ShieldItem;
@@ -24,19 +21,11 @@ import net.minecraft.util.Identifier;
 import net.neoforged.neoforge.common.extensions.IItemExtension;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 final class DungeonDifficultyNativeScaling {
-    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(DungeonDifficultyAddition.MOD_ID);
-    private static final Set<String> DIAGNOSTIC_ITEMS = Set.of(
-            "legendary_monsters:soul_great_sword",
-            "legendary_monsters:the_tesseract"
-    );
-    private static final Set<String> LOGGED_DIAGNOSTICS = java.util.Collections.synchronizedSet(new HashSet<>());
     private static final ClassValue<Boolean> HAS_DYNAMIC_DEFAULT_ATTRIBUTES = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> itemClass) {
@@ -68,14 +57,10 @@ final class DungeonDifficultyNativeScaling {
     }
 
     static boolean apply(ItemStack stack, int level) {
-        var itemId = Registries.ITEM.getId(stack.getItem()).toString();
         var hasDynamicDefaults = HAS_DYNAMIC_DEFAULT_ATTRIBUTES.get(((Object) stack.getItem()).getClass());
         // Capture stack-specific defaults before ItemScaling replaces them.
-        if (hasDynamicDefaults) {
+        if (hasDynamicDefaults && !LegendaryMonsterAttributes.applies(stack)) {
             var dynamicDefaults = ((IItemExtension) stack.getItem()).getDefaultAttributeModifiers(stack);
-            if (dynamicDefaults.modifiers().isEmpty()) {
-                dynamicDefaults = knownBrokenDynamicDefaults(itemId);
-            }
             stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, dynamicDefaults);
         }
 
@@ -88,9 +73,6 @@ final class DungeonDifficultyNativeScaling {
             ItemScaling.scale(stack, level);
             return ItemScaling.isScaled(stack);
         }
-
-        boolean diagnostic = DIAGNOSTIC_ITEMS.contains(itemId) && !LOGGED_DIAGNOSTICS.contains(itemId);
-        var beforeScaling = diagnostic ? describeAttributes(stack) : List.<String>of();
 
         var inferred = inferKindAndSlots(stack);
         if (inferred == null) {
@@ -116,69 +98,7 @@ final class DungeonDifficultyNativeScaling {
                 modifiers,
                 result.level()
         );
-        if (diagnostic && LOGGED_DIAGNOSTICS.add(itemId)) {
-            LOGGER.info(
-                    "Fixed scaling diagnostic: item={}, class={}, level={}, dynamic_defaults={}, rules={}, before={}, after={}, marked_scaled={}",
-                    itemId,
-                    ((Object) stack.getItem()).getClass().getName(),
-                    level,
-                    hasDynamicDefaults,
-                    result.modifiers().stream()
-                            .map(modifier -> modifier.attribute + ":" + modifier.operation)
-                            .toList(),
-                    beforeScaling,
-                    describeAttributes(stack),
-                    ItemScaling.isScaled(stack)
-            );
-        }
         return ItemScaling.isScaled(stack);
-    }
-
-    private static AttributeModifiersComponent knownBrokenDynamicDefaults(String itemId) {
-        var attackDamage = switch (itemId) {
-            case "legendary_monsters:soul_great_sword" -> 12D;
-            case "legendary_monsters:the_tesseract" -> 14D;
-            default -> 0D;
-        };
-        if (attackDamage == 0D) {
-            return AttributeModifiersComponent.DEFAULT;
-        }
-
-        // These items return no defaults, so restore their weapon attributes.
-        return AttributeModifiersComponent.builder()
-                .add(
-                        EntityAttributes.GENERIC_ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                attackDamage,
-                                EntityAttributeModifier.Operation.ADD_VALUE
-                        ),
-                        AttributeModifierSlot.MAINHAND
-                )
-                .add(
-                        EntityAttributes.GENERIC_ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_SPEED_MODIFIER_ID,
-                                -2.8D,
-                                EntityAttributeModifier.Operation.ADD_VALUE
-                        ),
-                        AttributeModifierSlot.MAINHAND
-                )
-                .build();
-    }
-
-    private static List<String> describeAttributes(ItemStack stack) {
-        var attributes = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributes == null) {
-            return List.of("<none>");
-        }
-        return attributes.modifiers().stream()
-                .map(entry -> attributeId(entry)
-                        + "|" + entry.modifier().id()
-                        + "|" + entry.modifier().value()
-                        + "|" + entry.modifier().operation()
-                        + "|" + entry.slot())
-                .toList();
     }
 
     private static InferredItem inferKindAndSlots(ItemStack stack) {

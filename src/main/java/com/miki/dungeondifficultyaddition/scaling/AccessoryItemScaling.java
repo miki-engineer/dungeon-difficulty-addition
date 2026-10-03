@@ -3,6 +3,7 @@ package com.miki.dungeondifficultyaddition.scaling;
 import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
 import com.miki.dungeondifficultyaddition.compat.OptionalModSupport;
 import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
+import com.miki.dungeondifficultyaddition.compat.LegendaryMonsterAttributes;
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.dungeon_difficulty.logic.PatternMatching;
@@ -132,6 +133,10 @@ public final class AccessoryItemScaling {
             return;
         }
 
+        // Repair old loot/manual/fixed stacks once, retaining their earned level and metadata.
+        // This precedes the manual/fixed shortcuts that otherwise keep broken old rolls forever.
+        repairLegendaryAttributes(stack, config);
+
         if (config.fixedLevel(stack) <= 0 && ItemLevelData.anvilLevelMarker(stack) <= 0
                 && ItemLevelData.manualLevelMarker(stack) > 0) {
             return;
@@ -165,6 +170,13 @@ public final class AccessoryItemScaling {
             return;
         }
         ItemLevelData.markFixedLevel(stack, level);
+    }
+
+    private static void repairLegendaryAttributes(ItemStack stack, AccessoryScalingConfig config) {
+        if (!LegendaryMonsterAttributes.needsRepair(stack)) return;
+        int current = ItemScaling.getScaleFactor(stack);
+        int floor = AnvilLevelPolicy.enforcedLevel(config.fixedLevel(stack), ItemLevelData.anvilLevelMarker(stack));
+        if (applyLevel(stack, Math.max(current, floor))) LegendaryMonsterAttributes.markRepaired(stack);
     }
 
     public static boolean needsMinimumLevel(ItemStack stack) {

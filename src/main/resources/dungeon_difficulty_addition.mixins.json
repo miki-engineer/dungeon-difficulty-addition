@@ -5,11 +5,13 @@
   "plugin": "com.miki.dungeondifficultyaddition.mixin.DungeonDifficultyAdditionMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "item.AttributeProbeSlotMixin",
     "item.CraftingResultInventoryMixin",
     "item.FixedItemEntityScalingMixin",
     "item.FixedItemStackScalingMixin",
     "loot.ItemScalingMixin",
     "loot.ItemScalingInvoker",
+    "loot.LegendaryMonsterScalingMixin",
     "relic.ItemStackTooltipMixin",
     "accessory.JewelryCurioItemMixin",
     "accessory.RelicCurioItemMixin",
