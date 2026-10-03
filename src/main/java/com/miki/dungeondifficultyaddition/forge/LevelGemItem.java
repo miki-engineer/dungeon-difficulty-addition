@@ -26,7 +26,9 @@ public final class LevelGemItem extends Item {
     }
 
     public LevelGemItem(GemKind kind, boolean fragment) {
-        super(new Settings().maxCount(64).rarity(fragment ? Rarity.COMMON : kind == GemKind.NEBULA ? Rarity.EPIC : Rarity.UNCOMMON)
+        super(new Settings().maxCount(64).rarity(kind == GemKind.NEBULA
+                        ? (fragment ? Rarity.UNCOMMON : Rarity.EPIC)
+                        : (fragment ? Rarity.COMMON : Rarity.UNCOMMON))
                 .component(DataComponentTypes.CUSTOM_DATA, data(1)));
         this.kind = kind;
         this.fragment = fragment;
