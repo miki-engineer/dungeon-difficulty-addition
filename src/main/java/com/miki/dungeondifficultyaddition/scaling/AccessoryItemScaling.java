@@ -74,6 +74,7 @@ public final class AccessoryItemScaling {
                 return 0;
             }
             ItemLevelData.markFixedLevel(stack, fixedLevel);
+            ItemLevelData.clearAnvilLevel(stack);
             return fixedLevel;
         }
 
@@ -81,7 +82,19 @@ public final class AccessoryItemScaling {
             return 0;
         }
         ItemLevelData.markManualLevel(stack, requestedLevel);
+        ItemLevelData.clearAnvilLevel(stack);
         return requestedLevel;
+    }
+
+    /** Called only for a validated anvil preview copy, never the input stack. */
+    public static int applyAnvilLevel(ItemStack stack, int target) {
+        if (stack == null || stack.isEmpty()) return 0;
+        int fixed = AccessoryScalingConfig.get().fixedLevel(stack);
+        if (!AnvilLevelPolicy.canAdvance(ItemScaling.getScaleFactor(stack), target, fixed,
+                ItemLevelData.anvilLevelMarker(stack)) || !applyLevel(stack, target)) return 0;
+        ItemLevelData.markFixedLevel(stack, target);
+        ItemLevelData.markAnvilLevel(stack, target);
+        return target;
     }
 
     private static boolean applyLevel(ItemStack stack, int level) {
@@ -119,7 +132,8 @@ public final class AccessoryItemScaling {
             return;
         }
 
-        if (ItemLevelData.manualLevelMarker(stack) > 0) {
+        if (config.fixedLevel(stack) <= 0 && ItemLevelData.anvilLevelMarker(stack) <= 0
+                && ItemLevelData.manualLevelMarker(stack) > 0) {
             return;
         }
 
@@ -131,7 +145,7 @@ public final class AccessoryItemScaling {
             return;
         }
 
-        var level = config.fixedLevel(stack);
+        var level = AnvilLevelPolicy.enforcedLevel(config.fixedLevel(stack), ItemLevelData.anvilLevelMarker(stack));
         if (level <= 0) {
             // A floor, not a fixed override: preserve dungeon/manual levels and
             // do not reroll attributes on subsequent inventory ticks.

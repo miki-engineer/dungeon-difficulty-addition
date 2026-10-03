@@ -7,6 +7,7 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ShieldItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 
@@ -16,8 +17,10 @@ public final class SalvageEquipment {
         if (stack.isEmpty() || stack.getItem() instanceof LevelGemItem
                 || !ForgeRules.validLevel(ItemScaling.getScaleFactor(stack))
                 || !AccessoryItemScaling.isForgeEquipment(stack)) return null;
+        if (SalvageConfig.get().isLegendary(Registries.ITEM.getId(stack.getItem()).toString())) return GemKind.NEBULA;
         // Pack makers can explicitly classify supported equipment without Java changes.
-        for (var kind : GemKind.values()) if (stack.isIn(TagKey.of(RegistryKeys.ITEM,
+        // Nebula eligibility comes only from the shared config list, not category tags.
+        for (var kind : GemKind.values()) if (kind != GemKind.NEBULA && stack.isIn(TagKey.of(RegistryKeys.ITEM,
                 Identifier.of("dungeon_difficulty_addition", "salvage/" + kind.id())))) return kind;
         if (stack.getItem() instanceof ArmorItem || stack.getItem() instanceof ShieldItem) return GemKind.ARMOR;
         if (AccessoryItemScaling.isSupportedAccessory(stack, AccessoryScalingConfig.get())) return GemKind.ACCESSORY;

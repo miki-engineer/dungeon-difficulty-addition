@@ -27,6 +27,8 @@ public final class RunicForge {
     public static final DeferredHolder<Item, LevelGemItem> WEAPON_GEM = ITEMS.register("weapon_level_gem", () -> new LevelGemItem(GemKind.WEAPON));
     public static final DeferredHolder<Item, LevelGemItem> ARMOR_GEM = ITEMS.register("armor_level_gem", () -> new LevelGemItem(GemKind.ARMOR));
     public static final DeferredHolder<Item, LevelGemItem> ACCESSORY_GEM = ITEMS.register("accessory_level_gem", () -> new LevelGemItem(GemKind.ACCESSORY));
+    public static final DeferredHolder<Item, LevelGemItem> NEBULA_GEM = ITEMS.register("nebula_level_gem", () -> new LevelGemItem(GemKind.NEBULA));
+    public static final DeferredHolder<Item, LevelGemItem> NEBULA_FRAGMENT = ITEMS.register("nebula_level_fragment", () -> new LevelGemItem(GemKind.NEBULA, true));
     public static final DeferredHolder<Item, LevelGemItem> WEAPON_FRAGMENT = ITEMS.register("weapon_level_fragment", () -> new LevelGemItem(GemKind.WEAPON, true));
     public static final DeferredHolder<Item, LevelGemItem> ARMOR_FRAGMENT = ITEMS.register("armor_level_fragment", () -> new LevelGemItem(GemKind.ARMOR, true));
     public static final DeferredHolder<Item, LevelGemItem> ACCESSORY_FRAGMENT = ITEMS.register("accessory_level_fragment", () -> new LevelGemItem(GemKind.ACCESSORY, true));
@@ -41,6 +43,7 @@ public final class RunicForge {
             case WEAPON -> WEAPON_GEM.get();
             case ARMOR -> ARMOR_GEM.get();
             case ACCESSORY -> ACCESSORY_GEM.get();
+            case NEBULA -> NEBULA_GEM.get();
         };
     }
     public static void register(IEventBus bus) {
@@ -58,6 +61,7 @@ public final class RunicForge {
             case WEAPON -> WEAPON_FRAGMENT.get();
             case ARMOR -> ARMOR_FRAGMENT.get();
             case ACCESSORY -> ACCESSORY_FRAGMENT.get();
+            case NEBULA -> NEBULA_FRAGMENT.get();
         };
     }
     private static void creativeItems(BuildCreativeModeTabContentsEvent event) {
@@ -67,6 +71,7 @@ public final class RunicForge {
         if (event.getTabKey().equals(ItemGroups.INGREDIENTS)) {
             event.add(WEAPON_GEM.get()); event.add(ARMOR_GEM.get()); event.add(ACCESSORY_GEM.get());
             event.add(WEAPON_FRAGMENT.get()); event.add(ARMOR_FRAGMENT.get()); event.add(ACCESSORY_FRAGMENT.get());
+            event.add(NEBULA_GEM.get()); event.add(NEBULA_FRAGMENT.get());
         }
     }
 }

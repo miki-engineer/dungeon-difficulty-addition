@@ -41,6 +41,7 @@ class ForgeAssetsTest {
     @Test void allModelsReferenceExistingTextures() throws Exception {
         for (var name : new String[]{"weapon_level_gem", "armor_level_gem", "accessory_level_gem",
                 "weapon_level_fragment", "armor_level_fragment", "accessory_level_fragment",
+                "nebula_level_gem", "nebula_level_fragment",
                 "gold_salvage_hammer", "diamond_salvage_hammer", "netherite_salvage_hammer"}) {
             try (var stream = getClass().getClassLoader().getResourceAsStream(ASSETS + "models/item/" + name + ".json")) {
                 assertNotNull(stream);

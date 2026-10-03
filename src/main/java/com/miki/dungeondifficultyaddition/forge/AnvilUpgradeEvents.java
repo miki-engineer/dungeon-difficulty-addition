@@ -1,6 +1,5 @@
 package com.miki.dungeondifficultyaddition.forge;
 
-import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.component.DataComponentTypes;
@@ -15,13 +14,12 @@ public final class AnvilUpgradeEvents {
         var left = event.getLeft();
         int target = LevelGemItem.level(event.getRight());
         if (!SalvageConfig.get().enabled || gem.isFragment() || left.getCount() != 1
-                || AccessoryScalingConfig.get().fixedLevel(left) > 0
                 || !UpgradeRules.canUpgrade(SalvageEquipment.kind(left), ItemScaling.getScaleFactor(left), gem.kind(), target)) {
             event.setCanceled(true);
             return;
         }
         var output = left.copy();
-        if (AccessoryItemScaling.applyCommandLevel(output, target) != target) {
+        if (AccessoryItemScaling.applyAnvilLevel(output, target) != target) {
             event.setCanceled(true);
             return;
         }

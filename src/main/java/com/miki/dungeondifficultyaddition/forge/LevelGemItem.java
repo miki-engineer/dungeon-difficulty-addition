@@ -26,7 +26,7 @@ public final class LevelGemItem extends Item {
     }
 
     public LevelGemItem(GemKind kind, boolean fragment) {
-        super(new Settings().maxCount(64).rarity(fragment ? Rarity.COMMON : Rarity.UNCOMMON)
+        super(new Settings().maxCount(64).rarity(fragment ? Rarity.COMMON : kind == GemKind.NEBULA ? Rarity.EPIC : Rarity.UNCOMMON)
                 .component(DataComponentTypes.CUSTOM_DATA, data(1)));
         this.kind = kind;
         this.fragment = fragment;
@@ -82,10 +82,14 @@ public final class LevelGemItem extends Item {
             tooltip.add(Text.empty());
         }
         if (fragment) {
-            addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.fragment.description").formatted(Formatting.GRAY));
+            addWrapped(tooltip, Text.translatable(kind == GemKind.NEBULA
+                    ? "tooltip.dungeon_difficulty_addition.nebula.fragment_description"
+                    : "tooltip.dungeon_difficulty_addition.fragment.description").formatted(Formatting.GRAY));
             return;
         }
-        addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.description").formatted(Formatting.GRAY));
+        addWrapped(tooltip, Text.translatable(kind == GemKind.NEBULA
+                ? "tooltip.dungeon_difficulty_addition.nebula.description"
+                : "tooltip.dungeon_difficulty_addition.ascension.description").formatted(Formatting.GRAY));
         tooltip.add(Text.empty());
         if (ForgeTooltips.showDetails()) {
             addWrapped(tooltip, Text.translatable("tooltip.dungeon_difficulty_addition.ascension.use." + kind.id()).formatted(Formatting.GRAY));

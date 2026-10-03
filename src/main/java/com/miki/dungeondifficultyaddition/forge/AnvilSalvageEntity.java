@@ -90,7 +90,9 @@ public final class AnvilSalvageEntity extends Entity {
         progress = next;
         dataTracker.set(HITS, progress.hits());
         if (next.complete()) {
-            if (!releaseAs(LevelGemItem.createFragment(kind, level, 1))) {
+            // Re-resolve the shared config for equipment placed before a config change/restart.
+            var currentKind = SalvageEquipment.kind(stack());
+            if (currentKind == null || !releaseAs(LevelGemItem.createFragment(currentKind, level, 1))) {
                 progress = new SalvageProgress(2, world.getTime() + SalvageProgress.INTERVAL_TICKS);
                 dataTracker.set(HITS, 2);
                 return;
