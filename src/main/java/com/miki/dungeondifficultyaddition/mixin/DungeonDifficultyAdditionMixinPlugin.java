@@ -21,6 +21,7 @@ public final class DungeonDifficultyAdditionMixinPlugin implements IMixinConfigP
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (mixinClassName.contains(".legendary.")) return isLoaded("legendary_monsters");
         var mixinName = mixinClassName.substring(mixinClassName.lastIndexOf('.') + 1);
         return switch (mixinName) {
             case "ItemScalingMixin" -> isLoaded(DungeonDifficultyAddition.JEWELRY_MOD_ID)

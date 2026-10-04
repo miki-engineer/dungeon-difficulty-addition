@@ -26,5 +26,6 @@ public final class DungeonDifficultyAddition {
         NeoForge.EVENT_BUS.addListener(DungeonDifficultyCommands::register);
         NeoForge.EVENT_BUS.addListener(ContainerLevelEvents::opened);
         NeoForge.EVENT_BUS.addListener(ContainerLevelEvents::tick);
+        NeoForge.EVENT_BUS.addListener(com.miki.dungeondifficultyaddition.compat.legendary.LegendaryAbilityDamage::spawned);
     }
 }

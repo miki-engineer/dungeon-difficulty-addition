@@ -25,7 +25,7 @@ class MixinConfigurationTest {
                     assertNotNull(loader.getResource(name.replace('.', '/') + ".class"), name);
                 }
             }
-            assertEquals(23, names.size(), "Keep existing hooks and the Legendary Monsters scaling and slot hooks");
+            assertEquals(32, names.size(), "Keep existing hooks and the optional Legendary Monsters active hooks");
             assertTrue(config.getAsJsonArray("mixins").asList().stream()
                     .anyMatch(entry -> entry.getAsString().equals("loot.LegendaryMonsterScalingMixin")));
             assertTrue(config.getAsJsonArray("client").asList().stream()
