@@ -8,7 +8,7 @@ public final class SalvageConfig {
     public boolean enabled = true;
     public int upgrade_xp_levels = 5;
     /** Exact item IDs: these equipment items yield and require Nebula materials. */
-    // Arsenal 1.5.0 equipment. Absent mods are harmless; users can edit or clear this list.
+    // RPG unique weapons and Witcher relic swords. Absent mods are harmless; this list is editable.
     public List<String> legendary_items = List.of(
             "arsenal:unique_claymore_1",
             "arsenal:unique_claymore_2",
@@ -53,7 +53,27 @@ public final class SalvageConfig {
             "arsenal:unique_staff_damage_4",
             "arsenal:unique_staff_damage_5",
             "arsenal:unique_staff_damage_6",
-            "arsenal:unique_staff_damage_sw");
+            "arsenal:unique_staff_damage_sw",
+            "bards_rpg:unique_harp_crossbow_0",
+            "bards_rpg:unique_harp_crossbow_1",
+            "bards_rpg:unique_lute_0",
+            "bards_rpg:unique_lute_1",
+            "bards_rpg:unique_lyre_0",
+            "bards_rpg:unique_lyre_1",
+            "bards_rpg:unique_rapier_0",
+            "bards_rpg:unique_rapier_1",
+            "berserker_rpg:unique_berserker_axe_1",
+            "berserker_rpg:unique_berserker_axe_2",
+            "berserker_rpg:unique_sword_1",
+            "elemental_wizards_rpg:unique_staff_1",
+            "forcemaster_rpg:unique_knuckle_0",
+            "forcemaster_rpg:unique_knuckle_1",
+            "witcher_rpg:winters_blade_sword",
+            "witcher_rpg:ultimatum_sword",
+            "witcher_rpg:azure_wrath_sword",
+            "witcher_rpg:reach_of_the_damned_sword",
+            "witcher_rpg:aerondight_sword",
+            "witcher_rpg:iris_sword");
     public boolean isLegendary(String itemId) { return legendary_items.contains(itemId); }
     public int gold_max_level = 3, diamond_max_level = 5;
     public int gold_durability = 32, diamond_durability = 1561, netherite_durability = 2031;

@@ -6,11 +6,11 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NebulaRulesTest {
-    @Test void arsenalDefaultsAreExactAndOptional() {
+    @Test void uniqueEquipmentDefaultsAreExactAndOptional() {
         var config = new SalvageConfig();
         config.validate();
-        assertEquals(44, config.legendary_items.size());
-        assertEquals(44, config.legendary_items.stream().distinct().count());
+        assertEquals(64, config.legendary_items.size());
+        assertEquals(64, config.legendary_items.stream().distinct().count());
         assertTrue(config.isLegendary("arsenal:unique_claymore_1"));
         assertTrue(config.isLegendary("arsenal:unique_shield_sw"));
         assertTrue(config.isLegendary("arsenal:unique_staff_damage_6"));
@@ -22,6 +22,31 @@ class NebulaRulesTest {
         config.legendary_items = List.of();
         config.validate();
         assertFalse(config.isLegendary("example:set_helmet"));
+    }
+    @Test void additionalRpgUniquesAndWitcherRelicSwordsUseNebula() {
+        var config = new SalvageConfig();
+        for (var id : List.of(
+                "bards_rpg:unique_harp_crossbow_0", "bards_rpg:unique_harp_crossbow_1",
+                "bards_rpg:unique_lute_0", "bards_rpg:unique_lute_1",
+                "bards_rpg:unique_lyre_0", "bards_rpg:unique_lyre_1",
+                "bards_rpg:unique_rapier_0", "bards_rpg:unique_rapier_1",
+                "berserker_rpg:unique_berserker_axe_1", "berserker_rpg:unique_berserker_axe_2",
+                "berserker_rpg:unique_sword_1", "elemental_wizards_rpg:unique_staff_1",
+                "forcemaster_rpg:unique_knuckle_0", "forcemaster_rpg:unique_knuckle_1",
+                "witcher_rpg:winters_blade_sword", "witcher_rpg:ultimatum_sword",
+                "witcher_rpg:azure_wrath_sword", "witcher_rpg:reach_of_the_damned_sword",
+                "witcher_rpg:aerondight_sword", "witcher_rpg:iris_sword")) {
+            assertTrue(config.isLegendary(id), id);
+        }
+    }
+    @Test void ordinaryWitcherGearAndUniqueJewelryRemainExcluded() {
+        var config = new SalvageConfig();
+        for (var id : List.of("witcher_rpg:iron_witcher_sword", "witcher_rpg:netherite_witcher_sword",
+                "witcher_rpg:grandmaster_wolven_chest", "witcher_rpg:wolf_school_medallion",
+                "witcher_rpg:master_spell_book", "witcher_rpg:silver_ingot", "witcher_rpg:igni_glyph",
+                "jewelry:unique_attack_ring", "additional_rpg_jewelry:unique_witcher_ring")) {
+            assertFalse(config.isLegendary(id), id);
+        }
     }
     @Test void invalidItemListsFailClearly() {
         for (var id : List.of("missing_namespace", "Example:item", "arsenal:*", "")) {
