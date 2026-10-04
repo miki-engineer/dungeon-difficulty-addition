@@ -1,6 +1,7 @@
 package com.miki.dungeondifficultyaddition.compat.viewer;
 
 import com.miki.dungeondifficultyaddition.forge.client.AscensionDisplays;
+import com.miki.dungeondifficultyaddition.forge.client.GemCraftingDisplays;
 import dev.emi.emi.api.*;
 import dev.emi.emi.api.recipe.*;
 import dev.emi.emi.api.stack.*;
@@ -20,6 +21,47 @@ public final class AscensionEmiPlugin implements EmiPlugin {
         registry.addCategory(CATEGORY);
         registry.addWorkstation(CATEGORY, EmiStack.of(Items.ANVIL));
         for (var display : AscensionDisplays.create()) registry.addRecipe(new Recipe(display));
+        for (var display : GemCraftingDisplays.create()) registry.addRecipe(new GemRecipe(display));
+    }
+    private static final class GemRecipe implements EmiRecipe {
+        private final GemCraftingDisplays.Display display;
+        private final List<EmiStack> fragments, gems;
+        GemRecipe(GemCraftingDisplays.Display display) {
+            this.display = display;
+            fragments = display.fragments().stream().map(EmiStack::of).toList();
+            gems = display.gems().stream().map(EmiStack::of).toList();
+        }
+        public EmiRecipeCategory getCategory() { return VanillaEmiRecipeCategories.CRAFTING; }
+        public Identifier getId() {
+            return Identifier.of("dungeon_difficulty_addition", "/gem_crafting/" + display.kind().id());
+        }
+        public List<EmiIngredient> getInputs() {
+            return java.util.stream.IntStream.range(0, 4).mapToObj(i -> EmiIngredient.of(fragments)).toList();
+        }
+        public List<EmiStack> getOutputs() { return gems; }
+        public int getDisplayWidth() { return 118; }
+        public int getDisplayHeight() { return 54; }
+        // Cycling levels are alternatives, not multiple simultaneous outputs. No unsafe auto-fill.
+        public boolean supportsRecipeTree() { return false; }
+        public void addWidgets(WidgetHolder widgets) {
+            int[] frame = {0};
+            widgets.addDrawable(0, 0, 0, 0, (context, mx, my, delta) ->
+                    frame[0] = (int) ((Util.getMeasuringTimeMs() / 2000) % fragments.size()));
+            for (int i = 0; i < 9; i++) {
+                if (i < 4) {
+                    widgets.add(new SlotWidget(fragments.getFirst(), (i % 3) * 18, (i / 3) * 18) {
+                        public EmiIngredient getStack() { return fragments.get(frame[0]); }
+                    });
+                } else {
+                    widgets.addSlot(EmiStack.of(ItemStack.EMPTY), (i % 3) * 18, (i / 3) * 18);
+                }
+            }
+            widgets.addTexture(EmiTexture.EMPTY_ARROW, 60, 18);
+            widgets.addTexture(EmiTexture.SHAPELESS, 97, 0);
+            widgets.add(new SlotWidget(gems.getFirst(), 92, 14) {
+                public EmiIngredient getStack() { return gems.get(frame[0]); }
+            }.large(true).recipeContext(this));
+        }
     }
     private static final class Recipe implements EmiRecipe {
         private final AscensionDisplays.Display display;

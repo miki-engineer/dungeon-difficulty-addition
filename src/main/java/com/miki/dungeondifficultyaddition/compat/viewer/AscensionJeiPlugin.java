@@ -1,6 +1,13 @@
 package com.miki.dungeondifficultyaddition.compat.viewer;
 
 import com.miki.dungeondifficultyaddition.forge.client.AscensionDisplays;
+import com.miki.dungeondifficultyaddition.forge.client.GemCraftingDisplays;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
+import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
+import net.minecraft.recipe.CraftingRecipe;
+import net.minecraft.recipe.RecipeEntry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.RecipeType;
@@ -32,10 +39,30 @@ public final class AscensionJeiPlugin implements IModPlugin {
         }
     }
     public void registerRecipes(IRecipeRegistration registration) {
-        if (enabled()) registration.addRecipes(TYPE, AscensionDisplays.create());
+        if (enabled()) {
+            registration.addRecipes(TYPE, AscensionDisplays.create());
+            registration.addRecipes(RecipeTypes.CRAFTING, GemCraftingDisplays.create().stream()
+                    .map(display -> new RecipeEntry<CraftingRecipe>(Identifier.of("dungeon_difficulty_addition",
+                            "gem_crafting/" + display.kind().id()), new GemCraftingJeiRecipe(display))).toList());
+        }
     }
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        if (enabled()) registration.addRecipeCatalyst(new ItemStack(Items.ANVIL), TYPE);
+        if (enabled()) {
+            registration.addRecipeCatalyst(new ItemStack(Items.ANVIL), TYPE);
+        }
+    }
+    public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
+        if (enabled()) registration.getCraftingCategory().addExtension(GemCraftingJeiRecipe.class, new GemExtension());
+    }
+    private static final class GemExtension implements ICraftingCategoryExtension<GemCraftingJeiRecipe> {
+        public void setRecipe(RecipeEntry<GemCraftingJeiRecipe> entry, IRecipeLayoutBuilder builder,
+                              ICraftingGridHelper grid, IFocusGroup focuses) {
+            var display = entry.value().display;
+            var inputs = java.util.Collections.nCopies(4, display.fragments());
+            var slots = new java.util.ArrayList<>(grid.createAndSetInputs(builder, inputs, 0, 0));
+            slots.add(grid.createAndSetOutputs(builder, display.gems()));
+            builder.createFocusLink(slots.toArray(IRecipeSlotBuilder[]::new));
+        }
     }
     private record Category(IDrawable icon, IDrawable plus, IDrawable arrow) implements IRecipeCategory<AscensionDisplays.Display> {
         public RecipeType<AscensionDisplays.Display> getRecipeType() { return TYPE; }

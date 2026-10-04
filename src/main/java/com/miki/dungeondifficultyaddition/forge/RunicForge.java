@@ -28,10 +28,10 @@ public final class RunicForge {
     public static final DeferredHolder<Item, LevelGemItem> ARMOR_GEM = ITEMS.register("armor_level_gem", () -> new LevelGemItem(GemKind.ARMOR));
     public static final DeferredHolder<Item, LevelGemItem> ACCESSORY_GEM = ITEMS.register("accessory_level_gem", () -> new LevelGemItem(GemKind.ACCESSORY));
     public static final DeferredHolder<Item, LevelGemItem> NEBULA_GEM = ITEMS.register("nebula_level_gem", () -> new LevelGemItem(GemKind.NEBULA));
-    public static final DeferredHolder<Item, LevelGemItem> NEBULA_FRAGMENT = ITEMS.register("nebula_level_fragment", () -> new LevelGemItem(GemKind.NEBULA, true));
     public static final DeferredHolder<Item, LevelGemItem> WEAPON_FRAGMENT = ITEMS.register("weapon_level_fragment", () -> new LevelGemItem(GemKind.WEAPON, true));
     public static final DeferredHolder<Item, LevelGemItem> ARMOR_FRAGMENT = ITEMS.register("armor_level_fragment", () -> new LevelGemItem(GemKind.ARMOR, true));
     public static final DeferredHolder<Item, LevelGemItem> ACCESSORY_FRAGMENT = ITEMS.register("accessory_level_fragment", () -> new LevelGemItem(GemKind.ACCESSORY, true));
+    public static final DeferredHolder<Item, LevelGemItem> NEBULA_FRAGMENT = ITEMS.register("nebula_level_fragment", () -> new LevelGemItem(GemKind.NEBULA, true));
     public static final DeferredHolder<EntityType<?>, EntityType<AnvilSalvageEntity>> PLACED_ITEM =
             ENTITIES.register("anvil_salvage_item", () -> EntityType.Builder.<AnvilSalvageEntity>create(
                     AnvilSalvageEntity::new, SpawnGroup.MISC).dimensions(.45F, .15F)
@@ -69,9 +69,9 @@ public final class RunicForge {
             event.add(GOLD_HAMMER.get()); event.add(DIAMOND_HAMMER.get()); event.add(NETHERITE_HAMMER.get());
         }
         if (event.getTabKey().equals(ItemGroups.INGREDIENTS)) {
-            event.add(WEAPON_GEM.get()); event.add(ARMOR_GEM.get()); event.add(ACCESSORY_GEM.get());
-            event.add(WEAPON_FRAGMENT.get()); event.add(ARMOR_FRAGMENT.get()); event.add(ACCESSORY_FRAGMENT.get());
-            event.add(NEBULA_GEM.get()); event.add(NEBULA_FRAGMENT.get());
+            // Keep creative-tab and recipe-viewer ordering grouped by form, then equipment kind.
+            for (var kind : GemKind.values()) event.add(gem(kind));
+            for (var kind : GemKind.values()) event.add(fragment(kind));
         }
     }
 }
