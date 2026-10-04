@@ -47,29 +47,29 @@ final class DungeonDifficultyNativeScaling {
         if (path.contains("spellbook") || path.contains("spellscroll")) {
             return false;
         }
-        return stack.getItem() instanceof ToolItem
-                || stack.getItem() instanceof RangedWeaponItem
-                || stack.getItem() instanceof ArmorItem
-                || stack.getItem() instanceof ShieldItem
+        return isNativeEquipment(stack)
                 // A spell container alone is not equipment (e.g. spell scrolls).
                 // Keep the broader compatibility inference for explicit scaling only.
-                || inferKindAndSlots(stack, false) != null;
+                || inferKindAndSlots(stack, false) != null
+                || LegendaryMonsterAttributes.hasWeaponAttributes(stack);
     }
 
     static boolean apply(ItemStack stack, int level) {
-        var hasDynamicDefaults = HAS_DYNAMIC_DEFAULT_ATTRIBUTES.get(((Object) stack.getItem()).getClass());
+        boolean nativeEquipment = isNativeEquipment(stack);
         // Capture stack-specific defaults before ItemScaling replaces them.
-        if (hasDynamicDefaults && !LegendaryMonsterAttributes.applies(stack)) {
+        if (LegendaryMonsterAttributes.applies(stack)) {
+            // Plain Item weapons must expose their attributes before kind/slot inference.
+            // Native equipment is prepared by the shared DD hook. Only inferred equipment
+            // needs its attributes materialized here to discover its kind and slots.
+            if (!nativeEquipment) LegendaryMonsterAttributes.prepare(stack);
+        } else if (HAS_DYNAMIC_DEFAULT_ATTRIBUTES.get(stack.getItem().getClass())) {
             var dynamicDefaults = ((IItemExtension) stack.getItem()).getDefaultAttributeModifiers(stack);
             stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, dynamicDefaults);
         }
 
         // Use Dungeon Difficulty's public scaler for every item type it recognizes
         // natively. Reserve the inferred compatibility path for nonstandard items.
-        if (stack.getItem() instanceof ToolItem
-                || stack.getItem() instanceof RangedWeaponItem
-                || stack.getItem() instanceof ArmorItem
-                || stack.getItem() instanceof ShieldItem) {
+        if (nativeEquipment) {
             ItemScaling.scale(stack, level);
             return ItemScaling.isScaled(stack);
         }
@@ -99,6 +99,13 @@ final class DungeonDifficultyNativeScaling {
                 result.level()
         );
         return ItemScaling.isScaled(stack);
+    }
+
+    private static boolean isNativeEquipment(ItemStack stack) {
+        return stack.getItem() instanceof ToolItem
+                || stack.getItem() instanceof RangedWeaponItem
+                || stack.getItem() instanceof ArmorItem
+                || stack.getItem() instanceof ShieldItem;
     }
 
     private static InferredItem inferKindAndSlots(ItemStack stack) {

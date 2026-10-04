@@ -137,7 +137,9 @@ public final class AccessoryItemScaling {
         // This precedes the manual/fixed shortcuts that otherwise keep broken old rolls forever.
         repairLegendaryAttributes(stack, config);
 
-        if (config.fixedLevel(stack) <= 0 && ItemLevelData.anvilLevelMarker(stack) <= 0
+        int fixedLevel = config.fixedLevel(stack);
+        int anvilLevel = ItemLevelData.anvilLevelMarker(stack);
+        if (fixedLevel <= 0 && anvilLevel <= 0
                 && ItemLevelData.manualLevelMarker(stack) > 0) {
             return;
         }
@@ -150,7 +152,7 @@ public final class AccessoryItemScaling {
             return;
         }
 
-        var level = AnvilLevelPolicy.enforcedLevel(config.fixedLevel(stack), ItemLevelData.anvilLevelMarker(stack));
+        var level = AnvilLevelPolicy.enforcedLevel(fixedLevel, anvilLevel);
         if (level <= 0) {
             // A floor, not a fixed override: preserve dungeon/manual levels and
             // do not reroll attributes on subsequent inventory ticks.
@@ -180,6 +182,8 @@ public final class AccessoryItemScaling {
     }
 
     public static boolean needsMinimumLevel(ItemStack stack) {
+        var config = AccessoryScalingConfig.get();
+        if (!config.enabled || !config.minimum_equipment_level_enabled) return false;
         if (stack == null || stack.isEmpty() || ItemScaling.getScaleFactor(stack) > 0
                 || isBuiltInExcluded(stack)) {
             return false;
@@ -188,9 +192,7 @@ public final class AccessoryItemScaling {
                 && OptionalSpellEngineSupport.isSpellBookOrScroll(stack)) {
             return false;
         }
-        var config = AccessoryScalingConfig.get();
-        return config.enabled && config.minimum_equipment_level_enabled
-                && (isSupportedAccessory(stack, config)
+        return (isSupportedAccessory(stack, config)
                 || DungeonDifficultyNativeScaling.isEquipment(stack));
     }
 

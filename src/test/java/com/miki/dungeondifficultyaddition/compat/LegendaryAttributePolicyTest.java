@@ -4,6 +4,29 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LegendaryAttributePolicyTest {
+    @Test void eventAttributesWinWithoutQueryingLegacyDefaults() {
+        var effective = java.util.List.of(new Modifier("damage", "base_attack_damage", "mainhand", 7));
+        assertSame(effective, LegendaryAttributePolicy.effectiveOrFallback(effective, java.util.List::isEmpty,
+                () -> { throw new AssertionError("Legacy defaults must not replace event attributes"); }));
+    }
+
+    @Test void emptyEventAttributesUseLegacyDefaultsExactlyOnce() {
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var legacy = java.util.List.of(new Modifier("damage", "base_attack_damage", "mainhand", 12));
+        assertSame(legacy, LegendaryAttributePolicy.effectiveOrFallback(java.util.List.<Modifier>of(),
+                java.util.List::isEmpty, () -> { calls.incrementAndGet(); return legacy; }));
+        assertEquals(1, calls.get());
+        assertTrue(LegendaryAttributePolicy.effectiveOrFallback(java.util.List.<Modifier>of(),
+                java.util.List::isEmpty, java.util.List::of).isEmpty());
+    }
+
+    @Test void repeatedResolutionUsesCurrentEventValuesWithoutAccumulatingOldStats() {
+        var first = java.util.List.of(new Modifier("damage", "base_attack_damage", "mainhand", 7));
+        var changed = java.util.List.of(new Modifier("damage", "base_attack_damage", "mainhand", 14));
+        assertSame(first, LegendaryAttributePolicy.effectiveOrFallback(first, java.util.List::isEmpty, () -> changed));
+        assertSame(changed, LegendaryAttributePolicy.effectiveOrFallback(changed, java.util.List::isEmpty, () -> first));
+    }
+
     private record Modifier(String attribute, String id, String slot, double amount) {
         java.util.List<String> key() { return java.util.List.of(attribute, id, slot); }
     }

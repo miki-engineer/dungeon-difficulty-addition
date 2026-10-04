@@ -7,21 +7,22 @@ import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.neoforged.neoforge.common.extensions.IItemExtension;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 /** Resolve the mod's live config-backed attributes before DD applies its own scaling formula. */
 public final class LegendaryMonsterAttributes {
     private static final String MOD_ID = "legendary_monsters";
     private static final String REVISION = "dungeon_difficulty_addition.legendary_attributes";
-    private static final int CURRENT_REVISION = 3;
+    private static final int CURRENT_REVISION = 6;
     private static final Identifier PROBE = Identifier.of("dungeon_difficulty_addition", "attribute_probe");
 
     private LegendaryMonsterAttributes() {}
@@ -36,8 +37,16 @@ public final class LegendaryMonsterAttributes {
                 .getNbt().getInt(REVISION) != CURRENT_REVISION;
     }
 
+    /** Recognise plain Item subclasses such as Withered Scythe without mutating the queried stack. */
+    public static boolean hasWeaponAttributes(ItemStack stack) {
+        if (!applies(stack) || !AccessoryScalingConfig.get().enabled) return false;
+        return readBaseAttributes(stack).modifiers().stream().anyMatch(entry ->
+                entry.attribute().equals(EntityAttributes.GENERIC_ATTACK_DAMAGE)
+                        && (entry.slot() == AttributeModifierSlot.MAINHAND || entry.slot() == AttributeModifierSlot.HAND));
+    }
+
     public static void markRepaired(ItemStack stack) {
-        if (applies(stack) && AccessoryScalingConfig.get().enabled && ItemScaling.isScaled(stack)) {
+        if (AccessoryScalingConfig.get().enabled && needsRepair(stack)) {
             stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
                     data -> data.apply(nbt -> nbt.putInt(REVISION, CURRENT_REVISION)));
         }
@@ -45,7 +54,7 @@ public final class LegendaryMonsterAttributes {
 
     public static void prepare(ItemStack stack) {
         if (!applies(stack) || !AccessoryScalingConfig.get().enabled) return;
-        var resolved = normalize(readBaseAttributes(stack));
+        var resolved = readBaseAttributes(stack);
         if (resolved.modifiers().isEmpty()) return;
 
         var existing = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
@@ -65,8 +74,15 @@ public final class LegendaryMonsterAttributes {
                     AttributeModifierSlot.MAINHAND).build();
         }
         probe.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, defaults);
-        return AttributeProbeScope.read(probe,
-                () -> ((IItemExtension) stack.getItem()).getDefaultAttributeModifiers(probe));
+        // LM registers its live weapon stats through ItemAttributeModifierEvent, including
+        // Chorus Blade (which has no attributes in its item class). Read that effective path
+        // first: some legacy defaults methods disagree with the event's current config values.
+        // The seed also prevents Soul Great Sword from recursively asking for its defaults.
+        var effective = normalize(AttributeProbeScope.read(probe, probe::getAttributeModifiers));
+        // Retain support for older/custom LM items which only supply a defaults method.
+        return LegendaryAttributePolicy.effectiveOrFallback(effective, value -> value.modifiers().isEmpty(),
+                () -> normalize(AttributeProbeScope.read(probe,
+                        () -> ((IItemExtension) stack.getItem()).getDefaultAttributeModifiers(probe))));
     }
 
     private static AttributeModifiersComponent mergeBaseAttributes(
@@ -101,10 +117,17 @@ public final class LegendaryMonsterAttributes {
         // Correct first, then deduplicate: they become the same (attribute, ID, slot) key.
         var result = AttributeModifiersComponent.builder();
         for (var entry : LegendaryAttributePolicy.uniqueByKey(corrected,
-                entry -> List.of(entry.attribute(), entry.modifier().id(), entry.slot()))) {
+                ModifierKey::of)) {
             result.add(entry.attribute(), entry.modifier(), entry.slot());
         }
         return result.build().withShowInTooltip(source.showInTooltip());
+    }
+
+    private record ModifierKey(RegistryEntry<EntityAttribute> attribute,
+                               Identifier id, AttributeModifierSlot slot) {
+        static ModifierKey of(AttributeModifiersComponent.Entry entry) {
+            return new ModifierKey(entry.attribute(), entry.modifier().id(), entry.slot());
+        }
     }
 
     /** Deliberately excludes attribute so a misplaced base modifier gets replaced, not retained. */

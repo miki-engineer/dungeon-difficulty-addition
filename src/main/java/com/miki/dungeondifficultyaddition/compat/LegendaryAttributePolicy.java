@@ -3,10 +3,17 @@ package com.miki.dungeondifficultyaddition.compat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /** Narrow correction: never reinterpret arbitrary negative attack-damage modifiers as speed. */
 final class LegendaryAttributePolicy {
     private LegendaryAttributePolicy() {}
+
+    /** Effective event attributes win; legacy defaults are queried only if nothing remains. */
+    static <T> T effectiveOrFallback(T effective, Predicate<T> isEmpty, Supplier<T> fallback) {
+        return isEmpty.test(effective) ? fallback.get() : effective;
+    }
 
     static boolean misplacedSpeed(String attribute, String modifier) {
         return "minecraft:generic.attack_damage".equals(attribute)
