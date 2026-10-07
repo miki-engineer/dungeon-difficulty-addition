@@ -2,7 +2,6 @@ package com.miki.dungeondifficultyaddition.compat.viewer;
 
 import com.miki.dungeondifficultyaddition.forge.client.AscensionDisplays;
 import com.miki.dungeondifficultyaddition.forge.client.GemCraftingDisplays;
-import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
@@ -59,9 +58,9 @@ public final class AscensionJeiPlugin implements IModPlugin {
                               ICraftingGridHelper grid, IFocusGroup focuses) {
             var display = entry.value().display;
             var inputs = java.util.Collections.nCopies(4, display.fragments());
-            var slots = new java.util.ArrayList<>(grid.createAndSetInputs(builder, inputs, 0, 0));
-            slots.add(grid.createAndSetOutputs(builder, display.gems()));
-            builder.createFocusLink(slots.toArray(IRecipeSlotBuilder[]::new));
+            var slots = grid.createAndSetInputs(builder, inputs, 0, 0);
+            var output = grid.createAndSetOutputs(builder, display.gems());
+            builder.createFocusLink(slots.get(0), slots.get(1), slots.get(3), slots.get(4), output);
         }
     }
     private record Category(IDrawable icon, IDrawable plus, IDrawable arrow) implements IRecipeCategory<AscensionDisplays.Display> {
