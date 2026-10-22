@@ -1,8 +1,8 @@
 package com.miki.dungeondifficultyaddition.config;
 
 import net.dungeon_difficulty.config.Config;
+import com.miki.dungeondifficultyaddition.scaling.ItemTraits;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import java.util.List;
 
 /** The scaling section of settings.json. Fixed item lists remain in their own file. */
@@ -19,7 +19,7 @@ public final class AccessoryScalingConfig {
     public static void reload() { ModSettings.reload(); }
     public List<Config.AttributeModifier> modifiers() { return attributes != null ? attributes : List.of(); }
     public int fixedLevel(ItemStack stack) {
-        return ModSettings.get().fixedLevels().levelFor(Registries.ITEM.getId(stack.getItem()).toString());
+        return ModSettings.get().fixedLevels().levelFor(ItemTraits.of(stack).id());
     }
     private static Config.AttributeModifier defaultAttributeModifier() {
         var modifier = new Config.AttributeModifier(".*", 0.1F);

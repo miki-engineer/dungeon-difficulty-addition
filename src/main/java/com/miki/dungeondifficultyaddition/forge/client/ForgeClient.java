@@ -1,11 +1,15 @@
 package com.miki.dungeondifficultyaddition.forge.client;
 
 import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
+import com.miki.dungeondifficultyaddition.compat.OptionalModSupport;
 import com.miki.dungeondifficultyaddition.forge.RunicForge;
+import com.miki.dungeondifficultyaddition.relic.RelicEffectScaling;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.minecraft.registry.Registries;
 import net.minecraft.client.gui.screen.Screen;
@@ -16,6 +20,10 @@ import com.miki.dungeondifficultyaddition.forge.ForgeTooltips;
 public final class ForgeClient {
     private ForgeClient() {}
     @SubscribeEvent public static void clientSetup(FMLClientSetupEvent event) {
+        if (OptionalModSupport.isLoaded(DungeonDifficultyAddition.SPELL_ENGINE_MOD_ID)) {
+            // Spell tooltips push relic levels on the render thread; see RelicEffectScaling.reset.
+            NeoForge.EVENT_BUS.addListener(ClientTickEvent.Pre.class, tick -> RelicEffectScaling.reset());
+        }
         event.enqueueWork(() -> {
             ForgeTooltips.setDetailsKeyCheck(Screen::hasShiftDown);
             ForgeTooltips.setTooltipWrapper(ForgeClient::wrapTooltip);

@@ -6,6 +6,9 @@ import com.miki.dungeondifficultyaddition.forge.SalvageConfig;
 import com.miki.dungeondifficultyaddition.readiness.EncounterConfig;
 import net.neoforged.fml.loading.FMLPaths;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 /** One published snapshot prevents readers from seeing partially loaded config sections. */
 public final class ModSettings {
     private static final Gson GSON = new Gson();
@@ -43,10 +46,24 @@ public final class ModSettings {
     }
     private static void validate(JsonObject root) {
         var scaling = section(root, "scaling", AccessoryScalingConfig.class);
-        if (scaling.attributes != null && scaling.attributes.stream().anyMatch(value -> value == null || value.operation == null))
-            throw new IllegalArgumentException("scaling.attributes contains a null modifier or operation");
+        if (scaling.attributes != null) for (var modifier : scaling.attributes) {
+            if (modifier == null || modifier.operation == null)
+                throw new IllegalArgumentException("scaling.attributes contains a null modifier or operation");
+            requireValidAttributePattern(modifier.attribute);
+        }
         section(root, "encounters", EncounterConfig.class).validate();
         section(root, "anvil", SalvageConfig.class).validate();
+    }
+    /** Dungeon Difficulty compiles these lazily on the first item tick, where a bad pattern would crash every tick. */
+    static void requireValidAttributePattern(String pattern) {
+        // Mirrors AccessoryItemScaling.matchesAttribute, which never compiles these.
+        if (pattern == null || pattern.isEmpty() || "*".equals(pattern)) return;
+        try {
+            Pattern.compile(pattern);
+        } catch (PatternSyntaxException exception) {
+            throw new IllegalArgumentException("scaling.attributes: invalid attribute pattern \"" + pattern
+                    + "\": " + exception.getDescription(), exception);
+        }
     }
     private static <T> T section(JsonObject root, String name, Class<T> type) {
         if (!root.has(name) || !root.get(name).isJsonObject())

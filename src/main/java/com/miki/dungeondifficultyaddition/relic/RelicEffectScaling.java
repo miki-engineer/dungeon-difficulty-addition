@@ -3,11 +3,11 @@ package com.miki.dungeondifficultyaddition.relic;
 import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
+import com.miki.dungeondifficultyaddition.scaling.ItemTraits;
 import net.dungeon_difficulty.config.Config;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.internals.container.SpellContainerSource;
@@ -45,9 +45,15 @@ public final class RelicEffectScaling {
         if (!levels.isEmpty()) {
             levels.pop();
         }
-        if (levels.isEmpty()) {
-            ACTIVE_RELIC_LEVELS.remove();
-        }
+    }
+
+    /**
+     * Push/pop pairs are HEAD/RETURN injections, and RETURN is skipped when another mod throws
+     * mid-spell. Called at the start of every tick, when no spell scope can be active, so a
+     * leaked level never keeps scaling unrelated effects and radii.
+     */
+    public static void reset() {
+        ACTIVE_RELIC_LEVELS.get().clear();
     }
 
     public static int currentLevel() {
@@ -108,8 +114,7 @@ public final class RelicEffectScaling {
     }
 
     private static int relicLevel(PlayerEntity player, RegistryEntry<Spell> spellEntry) {
-        var config = AccessoryScalingConfig.get();
-        if (player == null || !config.enabled || !config.scale_relics) {
+        if (player == null || !relicScalingEnabled()) {
             return 0;
         }
 
@@ -128,16 +133,21 @@ public final class RelicEffectScaling {
         return scaledRelicLevel(source.itemStack());
     }
 
+    // Also gates the stack-based path used by cooldowns, estimates and spell tooltips.
     private static int scaledRelicLevel(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
+        if (stack == null || stack.isEmpty() || !relicScalingEnabled()) {
             return 0;
         }
 
-        var itemId = Registries.ITEM.getId(stack.getItem());
-        if (!AccessoryFamilies.relics(itemId.getNamespace())) {
+        if (!AccessoryFamilies.relics(ItemTraits.of(stack).namespace())) {
             return 0;
         }
 
         return Math.max(0, ItemScaling.getScaleFactor(stack));
+    }
+
+    private static boolean relicScalingEnabled() {
+        var config = AccessoryScalingConfig.get();
+        return config.enabled && config.scale_relics;
     }
 }

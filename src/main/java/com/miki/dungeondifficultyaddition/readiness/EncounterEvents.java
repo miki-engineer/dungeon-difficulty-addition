@@ -22,8 +22,11 @@ public final class EncounterEvents {
     }
 
     private static void tick(EntityTickEvent.Pre event) {
+        // Ineligible mobs never get a record, so check eligibility first instead of on every tick
+        // touching (and lazily allocating) their persistent data.
         if (event.getEntity() instanceof MobEntity mob && !mob.getWorld().isClient
-                && EncounterConfig.get().active() && !mob.getPersistentData().contains(Encounters.KEY)) {
+                && EncounterConfig.get().active() && Encounters.eligible(mob)
+                && !mob.getPersistentData().contains(Encounters.KEY)) {
             // First server tick avoids querying structures while a chunk is being deserialized.
             Encounters.get(mob);
         }

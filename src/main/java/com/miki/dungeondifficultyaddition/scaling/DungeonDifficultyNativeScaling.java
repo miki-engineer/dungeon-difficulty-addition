@@ -16,7 +16,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.RangedWeaponItem;
 import net.minecraft.item.ShieldItem;
 import net.minecraft.item.ToolItem;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.neoforged.neoforge.common.extensions.IItemExtension;
 
@@ -43,8 +42,7 @@ final class DungeonDifficultyNativeScaling {
     }
 
     static boolean isEquipment(ItemStack stack) {
-        var path = Registries.ITEM.getId(stack.getItem()).getPath().replace("_", "").replace("-", "");
-        if (path.contains("spellbook") || path.contains("spellscroll")) {
+        if (ItemTraits.of(stack).spellContainerName()) {
             return false;
         }
         return isNativeEquipment(stack)
@@ -93,7 +91,7 @@ final class DungeonDifficultyNativeScaling {
         var modifiers = applicableModifiers(stack, inferred, result.modifiers());
         ItemScalingInvoker.dungeonDifficultyAddition$applyModifiersForItemStack(
                 inferred.slots(),
-                Registries.ITEM.getId(stack.getItem()).toString(),
+                ItemTraits.of(stack).id(),
                 stack,
                 modifiers,
                 result.level()
@@ -221,14 +219,7 @@ final class DungeonDifficultyNativeScaling {
             return true;
         }
 
-        // Some caster weapons expose their type only through the registry name.
-        var path = Registries.ITEM.getId(stack.getItem()).getPath().toLowerCase(Locale.ROOT);
-        return path.contains("staff")
-                || path.contains("wand")
-                || path.contains("scepter")
-                || path.contains("spellbook")
-                || path.contains("grimoire")
-                || path.contains("tome");
+        return ItemTraits.of(stack).magicWeaponName();
     }
 
     private static String attributeId(net.minecraft.component.type.AttributeModifiersComponent.Entry entry) {

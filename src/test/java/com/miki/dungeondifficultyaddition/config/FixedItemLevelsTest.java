@@ -18,7 +18,7 @@ class FixedItemLevelsTest {
         assertEquals(5, second.levelFor("minecraft:bow"));
     }
 
-    @Test void boundedCacheEvictionPreservesRuleResults() {
+    @Test void manyCachedItemsPreserveRuleResults() {
         var rules = FixedItemLevels.fromJson(json("{\"levels\":{\"7\":[\"mod:.*\"]}}"));
         for (int i = 0; i < 5000; i++) assertEquals(7, rules.levelFor("mod:item_" + i));
         assertEquals(7, rules.levelFor("mod:item_0"));

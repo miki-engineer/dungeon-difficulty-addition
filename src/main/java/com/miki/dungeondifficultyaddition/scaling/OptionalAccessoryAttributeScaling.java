@@ -6,7 +6,6 @@ import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
 /** Loaded only when Accessories is installed. */
@@ -14,31 +13,58 @@ final class OptionalAccessoryAttributeScaling {
     private OptionalAccessoryAttributeScaling() {
     }
 
-    static void removeFixedModifiers(ItemStack stack) {
+    /**
+     * Strips fixed/ and scale/ bonuses. A merged loot bonus keeps the original modifier ID, so
+     * restore those values from the item's default component (Jewelry registers its attributes
+     * there) before re-scaling; otherwise the scaled value becomes the next base.
+     */
+    static void removeScalingModifiers(ItemStack stack, boolean restoreMergedLoot) {
         var attributes = stack.get(AccessoriesDataComponents.ATTRIBUTES);
-        if (attributes == null || attributes.modifiers().stream().noneMatch(entry -> AccessoryItemScaling.isFixedModifier(entry.modifier()))) {
+        if (attributes == null) {
+            return;
+        }
+        var defaults = restoreMergedLoot
+                ? stack.getItem().getComponents().get(AccessoriesDataComponents.ATTRIBUTES)
+                : null;
+        // Excluded gems pass through here every inventory tick; skip the rebuild when idle.
+        if (defaults == null && !hasScalingModifier(attributes)) {
             return;
         }
         var builder = AccessoryItemAttributeModifiers.builder().showInTooltip(attributes.showInTooltip());
+        var changed = false;
         for (var entry : attributes.modifiers()) {
-            if (!AccessoryItemScaling.isFixedModifier(entry.modifier())) {
-                builder.addForSlot(entry.attribute(), entry.modifier(), entry.slotName(), entry.isStackable());
+            if (AccessoryItemScaling.isScalingModifier(entry.modifier())) {
+                changed = true;
+                continue;
             }
+            var modifier = defaults == null ? entry.modifier() : defaultModifier(defaults, entry);
+            changed |= !modifier.equals(entry.modifier());
+            builder.addForSlot(entry.attribute(), modifier, entry.slotName(), entry.isStackable());
         }
-        stack.set(AccessoriesDataComponents.ATTRIBUTES, builder.build());
+        if (changed) {
+            stack.set(AccessoriesDataComponents.ATTRIBUTES, builder.build());
+        }
     }
 
-    static boolean hasNegativeFixedModifier(ItemStack stack) {
-        var attributes = stack.get(AccessoriesDataComponents.ATTRIBUTES);
-        if (attributes == null) {
-            return false;
-        }
+    private static boolean hasScalingModifier(AccessoryItemAttributeModifiers attributes) {
         for (var entry : attributes.modifiers()) {
-            if (AccessoryItemScaling.isFixedModifier(entry.modifier()) && entry.modifier().value() < 0D) {
-                return true;
-            }
+            if (AccessoryItemScaling.isScalingModifier(entry.modifier())) return true;
         }
         return false;
+    }
+
+    private static EntityAttributeModifier defaultModifier(
+            AccessoryItemAttributeModifiers defaults,
+            AccessoryItemAttributeModifiers.Entry entry
+    ) {
+        for (var candidate : defaults.modifiers()) {
+            if (candidate.attribute().equals(entry.attribute())
+                    && candidate.slotName().equals(entry.slotName())
+                    && candidate.modifier().id().equals(entry.modifier().id())) {
+                return candidate.modifier();
+            }
+        }
+        return entry.modifier();
     }
 
     static void scaleAttributes(
@@ -52,7 +78,7 @@ final class OptionalAccessoryAttributeScaling {
             return;
         }
 
-        var itemId = Registries.ITEM.getId(stack.getItem()).toString();
+        var itemId = ItemTraits.of(stack).id();
         var builder = AccessoryItemAttributeModifiers.builder().showInTooltip(attributes.showInTooltip());
         var changed = false;
         for (var entry : attributes.modifiers()) {

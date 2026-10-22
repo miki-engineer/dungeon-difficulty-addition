@@ -12,41 +12,27 @@ import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class AccessoryItemScaling {
     private static final String CURIOS_ROLL_MARKER = "dungeon_difficulty_addition.curios_roll";
     private static final String FIXED_MODIFIER_PREFIX = "fixed/";
-    private static final Set<String> BUILT_IN_EXCLUSIONS = Set.of(
-            "jewelry:ruby",
-            "jewelry:topaz",
-            "jewelry:citrine",
-            "jewelry:jade",
-            "jewelry:sapphire",
-            "jewelry:tanzanite",
-            "jewelry:jewelers_kit",
-            "jewelry:gem_vein",
-            "jewelry:deepslate_gem_vein"
-    );
 
     private AccessoryItemScaling() {
     }
 
     public static boolean isSupportedAccessory(ItemStack stack, AccessoryScalingConfig config) {
-        var namespace = Registries.ITEM.getId(stack.getItem()).getNamespace();
+        var namespace = ItemTraits.of(stack).namespace();
         return (config.scale_jewelry && AccessoryFamilies.jewelry(namespace))
                 || (config.scale_relics && AccessoryFamilies.relics(namespace));
     }
 
     public static boolean isBuiltInExcluded(ItemStack stack) {
-        var id = Registries.ITEM.getId(stack.getItem()).toString();
-        return BUILT_IN_EXCLUSIONS.contains(id) || AccessoryFamilies.material(id);
+        return ItemTraits.of(stack).builtInExcluded();
     }
 
     public static void applyLootLevel(ItemStack stack, int level) {
@@ -66,6 +52,11 @@ public final class AccessoryItemScaling {
     public static int applyCommandLevel(ItemStack stack, int requestedLevel) {
         var config = AccessoryScalingConfig.get();
         if (stack == null || stack.isEmpty() || requestedLevel <= 0 || !config.enabled || isBuiltInExcluded(stack)) {
+            return 0;
+        }
+        // Otherwise plain items such as dirt get a level marker and no longer stack.
+        if (!isForgeEquipment(stack) && stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                AttributeModifiersComponent.DEFAULT).modifiers().isEmpty()) {
             return 0;
         }
 
@@ -104,7 +95,7 @@ public final class AccessoryItemScaling {
             return false;
         }
 
-        removeFixedModifiers(stack);
+        removeScalingModifiers(stack, isLootScaled(stack));
         if (ItemScaling.isScaled(stack)) {
             ItemScaling.removeScaling(stack);
         }
@@ -145,7 +136,7 @@ public final class AccessoryItemScaling {
         }
 
         if (isBuiltInExcluded(stack)) {
-            removeFixedModifiers(stack);
+            removeScalingModifiers(stack, isLootScaled(stack));
             if (ItemScaling.isScaled(stack)) {
                 ItemScaling.removeScaling(stack);
             }
@@ -161,10 +152,11 @@ public final class AccessoryItemScaling {
             }
             return;
         }
+        // Penalties are never scaled at this revision, so a negative modifier here comes from a
+        // configured rule and is current: re-rolling it would repeat on every inventory tick.
         if (ItemLevelData.fixedLevelMarker(stack) == level
                 && ItemScaling.getScaleFactor(stack) == level
-                && ItemLevelData.fixedRevisionMarker(stack) == ItemLevelData.FIXED_REVISION
-                && !hasNegativeFixedModifier(stack)) {
+                && ItemLevelData.fixedRevisionMarker(stack) == ItemLevelData.FIXED_REVISION) {
             return;
         }
 
@@ -206,12 +198,20 @@ public final class AccessoryItemScaling {
                 || DungeonDifficultyNativeScaling.isEquipment(stack));
     }
 
-    private static void removeFixedModifiers(ItemStack stack) {
+    /** Only the loot path merges bonuses into existing Accessories modifiers. */
+    private static boolean isLootScaled(ItemStack stack) {
+        return ItemScaling.isScaled(stack)
+                && ItemLevelData.fixedLevelMarker(stack) <= 0
+                && ItemLevelData.manualLevelMarker(stack) <= 0
+                && ItemLevelData.anvilLevelMarker(stack) <= 0;
+    }
+
+    private static void removeScalingModifiers(ItemStack stack, boolean restoreMergedLoot) {
         var vanilla = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (vanilla != null && vanilla.modifiers().stream().anyMatch(entry -> isFixedModifier(entry.modifier()))) {
+        if (vanilla != null && hasScalingModifier(vanilla)) {
             var builder = AttributeModifiersComponent.builder();
             for (var entry : vanilla.modifiers()) {
-                if (!isFixedModifier(entry.modifier())) {
+                if (!isScalingModifier(entry.modifier())) {
                     builder.add(entry.attribute(), entry.modifier(), entry.slot());
                 }
             }
@@ -220,8 +220,15 @@ public final class AccessoryItemScaling {
         }
 
         if (OptionalModSupport.isLoaded("accessories")) {
-            OptionalAccessoryAttributeScaling.removeFixedModifiers(stack);
+            OptionalAccessoryAttributeScaling.removeScalingModifiers(stack, restoreMergedLoot);
         }
+    }
+
+    private static boolean hasScalingModifier(AttributeModifiersComponent attributes) {
+        for (var entry : attributes.modifiers()) {
+            if (isScalingModifier(entry.modifier())) return true;
+        }
+        return false;
     }
 
     public static boolean isScalingModifier(EntityAttributeModifier modifier) {
@@ -231,32 +238,13 @@ public final class AccessoryItemScaling {
                 || modifier.id().getPath().startsWith("scale/"));
     }
 
-    static boolean isFixedModifier(EntityAttributeModifier modifier) {
-        return isScalingModifier(modifier)
-                && modifier.id().getPath().startsWith(FIXED_MODIFIER_PREFIX);
-    }
-
-    private static boolean hasNegativeFixedModifier(ItemStack stack) {
-        var vanilla = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (vanilla != null) {
-            for (var entry : vanilla.modifiers()) {
-                if (isFixedModifier(entry.modifier()) && entry.modifier().value() < 0D) {
-                    return true;
-                }
-            }
-        }
-
-        return OptionalModSupport.isLoaded("accessories")
-                && OptionalAccessoryAttributeScaling.hasNegativeFixedModifier(stack);
-    }
-
     private static void scaleVanillaAttributes(ItemStack stack, AccessoryScalingConfig config, int level) {
         var attributes = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (attributes == null || attributes.modifiers().isEmpty()) {
             return;
         }
 
-        var itemId = Registries.ITEM.getId(stack.getItem()).toString();
+        var itemId = ItemTraits.of(stack).id();
         var builder = AttributeModifiersComponent.builder();
         for (var entry : attributes.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
@@ -328,12 +316,12 @@ public final class AccessoryItemScaling {
         return result;
     }
 
-    // Match the precision shown in the tooltip.
+    // Match the precision shown in the tooltip (vanilla's "#.##"). Callers skip unscaled values.
     public static double compactCuriosValue(
             double value,
             EntityAttributeModifier.Operation operation
     ) {
-        var decimals = operation == EntityAttributeModifier.Operation.ADD_VALUE ? 1 : 3;
+        var decimals = operation == EntityAttributeModifier.Operation.ADD_VALUE ? 2 : 3;
         return BigDecimal.valueOf(value)
                 .setScale(decimals, RoundingMode.HALF_UP)
                 .doubleValue();
@@ -343,8 +331,7 @@ public final class AccessoryItemScaling {
         if (!OptionalModSupport.isLoaded("curios")) {
             return false;
         }
-        var namespace = Registries.ITEM.getId(stack.getItem()).getNamespace();
-        return AccessoryFamilies.accessory(namespace);
+        return AccessoryFamilies.accessory(ItemTraits.of(stack).namespace());
     }
 
     private static void ensureCuriosRoll(ItemStack stack) {
@@ -368,7 +355,7 @@ public final class AccessoryItemScaling {
         }
 
         // Stable fallback for items created before rolls were stored.
-        var itemId = Registries.ITEM.getId(stack.getItem()).toString();
+        var itemId = ItemTraits.of(stack).id();
         var hash = 31 * itemId.hashCode() + level;
         return ((hash & 0x7fffffff) / (double) Integer.MAX_VALUE) * 2D - 1D;
     }

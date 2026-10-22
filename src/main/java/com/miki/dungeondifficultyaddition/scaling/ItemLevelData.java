@@ -21,7 +21,7 @@ final class ItemLevelData {
     static void markAnvilLevel(ItemStack stack, int level) {
         stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, data -> data.apply(nbt -> {
             nbt.putInt(ANVIL_LEVEL_MARKER, level);
-            nbt.putString(ANVIL_ITEM_MARKER, net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString());
+            nbt.putString(ANVIL_ITEM_MARKER, ItemTraits.of(stack).id());
         }));
     }
 
@@ -29,7 +29,7 @@ final class ItemLevelData {
         var data = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (data == null) return 0;
         var nbt = data.getNbt();
-        if (!net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString().equals(nbt.getString(ANVIL_ITEM_MARKER))) return 0;
+        if (!ItemTraits.of(stack).id().equals(nbt.getString(ANVIL_ITEM_MARKER))) return 0;
         int level = nbt.getInt(ANVIL_LEVEL_MARKER);
         return com.miki.dungeondifficultyaddition.forge.ForgeRules.validLevel(level) ? level : 0;
     }

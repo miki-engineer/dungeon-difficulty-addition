@@ -129,7 +129,8 @@ are independent: gold defaults to level 3, diamond to level 5, and netherite has
 4. Put equipment on the left and its matching gem on the right of a normal anvil.
 
 Upgrades advance exactly one level: level 3 equipment needs a level 4 gem.
-Each upgrade consumes one gem and, by default, 5 XP levels. Fixed-level equipment cannot be upgraded.
+Each upgrade consumes one gem and, by default, 5 XP levels. Fixed-level equipment upgrades
+from its fixed level, and the upgraded level is kept even though the fixed rule still matches.
 Sneak-right-click with an empty hand to retrieve placed equipment before salvaging finishes.
 
 Gems and fragments show a display-only Power Level; they are not scaled equipment.

@@ -42,7 +42,8 @@ public abstract class RelicCurioItemMixin {
             var value = AccessoryItemScaling.configuredCuriosValue(
                     stack, modifier.value(), attributeId, level
             );
-            scaled.put(entry.getKey(), new EntityAttributeModifier(
+            // Unmatched attributes keep their exact value; rounding them could erase small stats.
+            scaled.put(entry.getKey(), value == modifier.value() ? modifier : new EntityAttributeModifier(
                     modifier.id(),
                     AccessoryItemScaling.compactCuriosValue(value, modifier.operation()),
                     modifier.operation()

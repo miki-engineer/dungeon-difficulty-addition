@@ -1,6 +1,7 @@
 package com.miki.dungeondifficultyaddition.compat;
 
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
+import com.miki.dungeondifficultyaddition.scaling.ItemTraits;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
@@ -9,14 +10,16 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.neoforged.neoforge.common.extensions.IItemExtension;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Resolve the mod's live config-backed attributes before DD applies its own scaling formula. */
 public final class LegendaryMonsterAttributes {
@@ -24,11 +27,12 @@ public final class LegendaryMonsterAttributes {
     private static final String REVISION = "dungeon_difficulty_addition.legendary_attributes";
     private static final int CURRENT_REVISION = 6;
     private static final Identifier PROBE = Identifier.of("dungeon_difficulty_addition", "attribute_probe");
+    private static final Map<Item, Boolean> WEAPONS = new ConcurrentHashMap<>();
 
     private LegendaryMonsterAttributes() {}
 
     public static boolean applies(ItemStack stack) {
-        return !stack.isEmpty() && Registries.ITEM.getId(stack.getItem()).getNamespace().equals(MOD_ID);
+        return !stack.isEmpty() && ItemTraits.of(stack).namespace().equals(MOD_ID);
     }
 
     public static boolean needsRepair(ItemStack stack) {
@@ -40,6 +44,17 @@ public final class LegendaryMonsterAttributes {
     /** Recognise plain Item subclasses such as Withered Scythe without mutating the queried stack. */
     public static boolean hasWeaponAttributes(ItemStack stack) {
         if (!applies(stack) || !AccessoryScalingConfig.get().enabled) return false;
+        // Unscaled non-weapons (materials, trophies) reach this every inventory tick; the probe
+        // copies the stack and fires an attribute event. Weapon-ness is per item, so cache it.
+        // Not computeIfAbsent: the probe can re-enter for the same item.
+        var cached = WEAPONS.get(stack.getItem());
+        if (cached != null) return cached;
+        var weapon = probeWeaponAttributes(stack);
+        WEAPONS.put(stack.getItem(), weapon);
+        return weapon;
+    }
+
+    private static boolean probeWeaponAttributes(ItemStack stack) {
         return readBaseAttributes(stack).modifiers().stream().anyMatch(entry ->
                 entry.attribute().equals(EntityAttributes.GENERIC_ATTACK_DAMAGE)
                         && (entry.slot() == AttributeModifierSlot.MAINHAND || entry.slot() == AttributeModifierSlot.HAND));

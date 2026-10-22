@@ -122,15 +122,25 @@ public final class AnvilSalvageEntity extends Entity {
         }
     }
     private boolean releaseAs(ItemStack result) {
-        if (!(getWorld() instanceof ServerWorld world) || result.isEmpty()) return false;
-        var drop = new ItemEntity(world, getX(), getY() + .12, getZ(), result.copy());
-        drop.setToDefaultPickupDelay();
-        if (!world.spawnEntity(drop)) return false;
+        if (!(getWorld() instanceof ServerWorld world) || result.isEmpty() || !spawnDrop(world, result)) return false;
         dataTracker.set(STACK, ItemStack.EMPTY);
         discard();
         return true;
     }
+    private boolean spawnDrop(ServerWorld world, ItemStack result) {
+        var drop = new ItemEntity(world, getX(), getY() + .12, getZ(), result.copy());
+        drop.setToDefaultPickupDelay();
+        return world.spawnEntity(drop);
+    }
     public void release() { if (!stack().isEmpty()) releaseAs(stack()); }
+    /** /kill and entity cleaners remove this directly; drop the equipment instead of deleting it. */
+    @Override public void remove(RemovalReason reason) {
+        if (reason.shouldDestroy() && getWorld() instanceof ServerWorld world && !stack().isEmpty()
+                && spawnDrop(world, stack())) {
+            dataTracker.set(STACK, ItemStack.EMPTY);
+        }
+        super.remove(reason);
+    }
     @Override public ActionResult interact(PlayerEntity player, Hand hand) {
         if (hand != Hand.MAIN_HAND || !player.isSneaking()) return ActionResult.PASS;
         if (player.getStackInHand(hand).isEmpty()) {

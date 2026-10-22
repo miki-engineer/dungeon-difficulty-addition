@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -20,17 +20,16 @@ final class FixedItemLevels {
     private static final Pattern LEGACY_LEVEL_KEY = Pattern.compile("level_(\\d+)");
     private final NavigableMap<Integer, List<String>> levels = new TreeMap<>();
     private List<CompiledRule> compiled = List.of();
-    // Config-local and bounded: reloading rules never reuses old lookup results.
-    private final Map<String, Integer> resolved = new LinkedHashMap<>(256, .75F, true) {
-        @Override protected boolean removeEldestEntry(Map.Entry<String, Integer> entry) { return size() > 4096; }
-    };
+    // Config-local: reloading rules never reuses old lookup results. Keys are registry item IDs,
+    // so the registry bounds its size. Lock-free because every inventory tick queries it.
+    private final Map<String, Integer> resolved = new ConcurrentHashMap<>();
     private record CompiledRule(int level, String literal, Pattern regex) {
         boolean matches(String itemId) {
             return itemId.equals(literal) || (regex != null && regex.matcher(itemId).matches());
         }
     }
 
-    synchronized int levelFor(String itemId) {
+    int levelFor(String itemId) {
         if (compiled.isEmpty()) return 0;
         var cached = resolved.get(itemId);
         if (cached != null) return cached;
