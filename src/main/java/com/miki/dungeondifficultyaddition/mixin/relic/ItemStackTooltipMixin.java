@@ -6,12 +6,10 @@ import com.miki.dungeondifficultyaddition.relic.RelicEffectScaling;
 import com.miki.dungeondifficultyaddition.relic.TooltipNumbers;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.neoforged.fml.loading.FMLPaths;
@@ -51,12 +49,8 @@ public abstract class ItemStackTooltipMixin {
         }
 
         var stack = (ItemStack) (Object) this;
-        var itemId = Registries.ITEM.getId(stack.getItem());
-        if (!AccessoryFamilies.accessory(itemId.getNamespace())) {
-            return;
-        }
-
-        var level = ItemScaling.getScaleFactor(stack);
+        // Zero for non-relics. Shares the enabled/scale_relics gate with cooldowns and spell tooltips.
+        var level = RelicEffectScaling.level(stack);
         if (level <= 0) {
             return;
         }
