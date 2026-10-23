@@ -127,6 +127,7 @@ public final class AccessoryItemScaling {
         // Repair old loot/manual/fixed stacks once, retaining their earned level and metadata.
         // This precedes the manual/fixed shortcuts that otherwise keep broken old rolls forever.
         repairLegendaryAttributes(stack, config);
+        rerollPreviousFormula(stack);
 
         int fixedLevel = config.fixedLevel(stack);
         int anvilLevel = ItemLevelData.anvilLevelMarker(stack);
@@ -171,6 +172,20 @@ public final class AccessoryItemScaling {
         int current = ItemScaling.getScaleFactor(stack);
         int floor = AnvilLevelPolicy.enforcedLevel(config.fixedLevel(stack), ItemLevelData.anvilLevelMarker(stack));
         if (applyLevel(stack, Math.max(current, floor))) LegendaryMonsterAttributes.markRepaired(stack);
+    }
+
+    /** Stacks rolled before level 1 became base carry one extra bonus level; re-roll them once at their level. */
+    private static void rerollPreviousFormula(ItemStack stack) {
+        int level = ItemScaling.getScaleFactor(stack);
+        if (level <= 0 || ItemLevelData.hasCurrentFormula(stack)) return;
+        if (isForgeEquipment(stack)) applyLevel(stack, level);
+        // Also marks stacks that could not re-roll, so they are not retried every tick.
+        ItemLevelData.markCurrentFormula(stack);
+    }
+
+    /** Every fresh roll ends in ItemScaling.markAsScaled, so stamping there covers all roll paths. */
+    public static void markCurrentFormula(ItemStack stack) {
+        ItemLevelData.markCurrentFormula(stack);
     }
 
     public static boolean needsMinimumLevel(ItemStack stack) {

@@ -50,6 +50,12 @@ public abstract class ItemScalingMixin {
         return LevelBonus.randomizedValue(modifier, level);
     }
 
+    // Dungeon Difficulty marks a stack only right after rolling it (rescale removes, then re-rolls).
+    @Inject(method = "markAsScaled", at = @At("TAIL"), remap = false)
+    private static void dungeonDifficultyAddition$markCurrentFormula(ItemStack stack, int level, CallbackInfo ci) {
+        AccessoryItemScaling.markCurrentFormula(stack);
+    }
+
     @Inject(
             method = "scale(Lnet/minecraft/item/ItemStack;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/Identifier;Lnet/dungeon_difficulty/logic/PatternMatching$LocationData;)V",
             at = @At("TAIL"),
