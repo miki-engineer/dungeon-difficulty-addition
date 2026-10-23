@@ -279,10 +279,10 @@ public final class AccessoryItemScaling {
                 continue;
             }
             bonus += switch (modifier.operation) {
-                case ADDITION -> modifier.randomizedValue(level);
+                case ADDITION -> LevelBonus.randomizedValue(modifier, level);
                 // Do not scale penalties such as attack-speed reductions.
                 case MULTIPLY_BASE -> baseValue > 0D
-                        ? baseValue * modifier.randomizedValue(level)
+                        ? baseValue * LevelBonus.randomizedValue(modifier, level)
                         : 0D;
             };
         }
@@ -296,7 +296,8 @@ public final class AccessoryItemScaling {
             String attributeId,
             int level
     ) {
-        if (level <= 0) {
+        var bonusLevels = LevelBonus.bonusLevels(level);
+        if (bonusLevels <= 0) {
             return baseValue;
         }
 
@@ -307,7 +308,7 @@ public final class AccessoryItemScaling {
                 continue;
             }
 
-            var scaling = modifier.value * level + modifier.offset + modifier.randomness * roll;
+            var scaling = modifier.value * bonusLevels + modifier.offset + modifier.randomness * roll;
             result += switch (modifier.operation) {
                 case ADDITION -> scaling;
                 case MULTIPLY_BASE -> baseValue > 0D ? baseValue * scaling : 0D;

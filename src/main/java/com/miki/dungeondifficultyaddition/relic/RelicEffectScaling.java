@@ -4,6 +4,7 @@ import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
 import com.miki.dungeondifficultyaddition.scaling.ItemTraits;
+import com.miki.dungeondifficultyaddition.scaling.LevelBonus;
 import net.dungeon_difficulty.config.Config;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.entity.player.PlayerEntity;
@@ -62,7 +63,8 @@ public final class RelicEffectScaling {
     }
 
     public static double scaledValue(String attributeId, double baseValue, int level) {
-        if (level <= 0) {
+        var bonusLevels = LevelBonus.bonusLevels(level);
+        if (bonusLevels <= 0) {
             return baseValue;
         }
 
@@ -75,7 +77,7 @@ public final class RelicEffectScaling {
             }
 
             // Keep active-effect runtime values and tooltips identical.
-            var scaling = modifier.value * level + modifier.offset;
+            var scaling = modifier.value * bonusLevels + modifier.offset;
             scaledValue += modifier.operation == Config.Operation.ADDITION
                     ? scaling
                     : baseValue * scaling;

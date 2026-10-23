@@ -2,6 +2,7 @@ package com.miki.dungeondifficultyaddition.compat.legendary;
 
 import com.miki.dungeondifficultyaddition.compat.LegendaryMonsterAttributes;
 import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
+import com.miki.dungeondifficultyaddition.scaling.LevelBonus;
 import net.dungeon_difficulty.DungeonDifficulty;
 import net.dungeon_difficulty.config.Config;
 import net.dungeon_difficulty.logic.ItemScaling;
@@ -34,7 +35,7 @@ public final class LegendaryAbilityDamage {
         float addition = 0, multiply = 0;
         for (var modifier : result.modifiers()) {
             if (!PatternMatching.regexMatches("minecraft:generic.attack_damage", modifier.attribute)) continue;
-            float value = modifier.randomizedValue(result.level());
+            float value = LevelBonus.randomizedValue(modifier, result.level());
             if (!Float.isFinite(value)) continue;
             if (modifier.operation == Config.Operation.ADDITION) addition += value;
             else if (modifier.operation == Config.Operation.MULTIPLY_BASE) multiply += value;

@@ -13,7 +13,8 @@ final class ItemLevelData {
     private static final String ANVIL_ITEM_MARKER = "dungeon_difficulty_addition.anvil_item";
     private static final String LEGACY_FIXED_LEVEL_MARKER = "dd_jewelry_compat.fixed_level";
     private static final String LEGACY_FIXED_REVISION_MARKER = "dd_jewelry_compat.fixed_revision";
-    static final int FIXED_REVISION = 13;
+    // 14: level 1 is base stats, so fixed items re-roll one bonus level lower.
+    static final int FIXED_REVISION = 14;
 
     private ItemLevelData() {
     }
