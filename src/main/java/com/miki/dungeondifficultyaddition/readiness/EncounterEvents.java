@@ -6,6 +6,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 public final class EncounterEvents {
     private EncounterEvents() {}
@@ -14,11 +15,17 @@ public final class EncounterEvents {
         // This event precedes armor/toughness/protection. Change the existing hit, never emit a second hit.
         NeoForge.EVENT_BUS.addListener(EventPriority.LOW, EncounterEvents::incoming);
         NeoForge.EVENT_BUS.addListener(EncounterEvents::tick);
+        NeoForge.EVENT_BUS.addListener(EncounterEvents::playerTick);
         NeoForge.EVENT_BUS.addListener(EncounterCommands::register);
         NeoForge.EVENT_BUS.addListener(DamageChecks::register);
         NeoForge.EVENT_BUS.addListener(DamageChecks::post);
         NeoForge.EVENT_BUS.addListener(DamageChecks::logout);
         NeoForge.EVENT_BUS.addListener(DamageChecks::stopped);
+    }
+
+    // Fires on both sides, so the client's inventory tab tracks the same weapon as server damage.
+    private static void playerTick(PlayerTickEvent.Post event) {
+        if (EncounterConfig.get().active()) EquippedLevels.trackWeapon(event.getEntity());
     }
 
     private static void tick(EntityTickEvent.Pre event) {
@@ -57,7 +64,7 @@ public final class EncounterEvents {
                 }
                 double gearScore = EquippedLevels.gearScore(EquippedLevels.slots(player));
                 rule = "incoming: " + encounter.scope() + " level=" + encounter.level()
-                        + ", armor/Curios gear score=" + EquippedLevels.format(gearScore);
+                        + ", gear score=" + EquippedLevels.format(gearScore);
                 multiplier = ReadinessMath.incoming(encounter.level(), gearScore, config.incoming_penalty_per_level);
             } else if (config.outgoing_penalty_enabled && attacker instanceof ServerPlayerEntity player
                     && participating(player) && victim instanceof MobEntity mob) {
@@ -66,13 +73,11 @@ public final class EncounterEvents {
                     rule = "outgoing: no eligible recorded encounter";
                     return;
                 }
-                // Explicit hit-time policy also covers attributed projectiles and spells.
-                // Better Combat 2.4.0 exposes the striking off-hand stack here during its
-                // synchronous attack (PlayerAttackHelper.swapHandAttributes). Do not
-                // apply a second penalty or average the two weapons together.
-                int weapon = EquippedLevels.level(player.getMainHandStack());
-                rule = "outgoing: " + encounter.scope() + " level=" + encounter.level() + ", hit-time weapon level=" + weapon;
-                multiplier = ReadinessMath.outgoing(encounter.level(), weapon,
+                // The same gear score as incoming hits, so projectiles and spells need no hand policy.
+                double gearScore = EquippedLevels.gearScore(EquippedLevels.slots(player));
+                rule = "outgoing: " + encounter.scope() + " level=" + encounter.level()
+                        + ", gear score=" + EquippedLevels.format(gearScore);
+                multiplier = ReadinessMath.outgoing(encounter.level(), gearScore,
                         config.outgoing_penalty_per_level, config.maximum_outgoing_reduction);
             }
             var amount = event.getAmount() * multiplier;

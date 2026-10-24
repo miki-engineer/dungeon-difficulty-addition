@@ -11,7 +11,7 @@ final class CuriosLevels {
             var stacks = handler.getStacks();
             for (int index = 0; index < stacks.getSlots(); index++) {
                 if (inventory.isSlotActive(name, index)) {
-                    EquippedLevels.add(result, "curios:" + name + "/" + index, stacks.getStackInSlot(index));
+                    EquippedLevels.addCurio(result, "curios:" + name + "/" + index, stacks.getStackInSlot(index));
                 }
             }
         }));

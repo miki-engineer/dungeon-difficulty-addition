@@ -33,12 +33,10 @@ final class EncounterCommands {
             if (encounter != null && source.getEntity() instanceof ServerPlayerEntity viewer) {
                 var config = EncounterConfig.get().player_readiness;
                 var gearScore = EquippedLevels.gearScore(EquippedLevels.slots(viewer));
-                reply(source, "Your incoming multiplier: " + ReadinessMath.incoming(encounter.level(), gearScore,
-                        config.incoming_penalty_per_level) + "; main-hand outgoing multiplier: "
-                        + ReadinessMath.outgoing(encounter.level(), EquippedLevels.level(viewer.getMainHandStack()),
-                        config.outgoing_penalty_per_level, config.maximum_outgoing_reduction)
-                        + "; off-hand outgoing multiplier (off-hand attacks): "
-                        + ReadinessMath.outgoing(encounter.level(), EquippedLevels.level(viewer.getOffHandStack()),
+                reply(source, "Your gear score: " + EquippedLevels.format(gearScore)
+                        + "; incoming multiplier: " + ReadinessMath.incoming(encounter.level(), gearScore,
+                        config.incoming_penalty_per_level) + "; outgoing multiplier: "
+                        + ReadinessMath.outgoing(encounter.level(), gearScore,
                         config.outgoing_penalty_per_level, config.maximum_outgoing_reduction)
                         + " (applied only when the corresponding readiness settings are enabled)");
             }
@@ -54,10 +52,11 @@ final class EncounterCommands {
         try {
             var slots = EquippedLevels.slots(player);
             reply(source, "Readiness enabled: " + EncounterConfig.get().player_readiness.enabled);
-            for (var slot : slots) reply(source, slot.name() + ": " + slot.item() + " level " + slot.level());
-            reply(source, "Armor/Curios gear score: " + EquippedLevels.format(EquippedLevels.gearScore(slots))
-                    + "; main-hand level: " + EquippedLevels.level(player.getMainHandStack())
-                    + "; off-hand level: " + EquippedLevels.level(player.getOffHandStack()));
+            var gearScore = EquippedLevels.gearScore(slots);
+            for (var slot : slots) reply(source, slot.name() + ": " + slot.item() + " level " + slot.level()
+                    + (slot.weight() > 1 ? " (counts " + slot.weight() + "x)" : "")
+                    + (slot.counts(gearScore) ? "" : " (not counted: would lower your score)"));
+            reply(source, "Gear score: " + EquippedLevels.format(gearScore));
             return 1;
         } catch (RuntimeException | LinkageError exception) {
             Encounters.warn("diagnostics", exception);
