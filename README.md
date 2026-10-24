@@ -10,10 +10,12 @@ A NeoForge mod for Minecraft 1.21.1 that expands
 - Shows the scaled values directly in item tooltips.
 - Supports fixed levels for boss drops, crafted items, and other modded equipment.
 - Supports JEI and EMI recipe-output previews.
-- Optionally applies dungeon damage penalties based on equipped item levels.
+- Optionally applies dungeon damage penalties based on your gear score, shown in the inventory.
 - Salvage leveled equipment on vanilla anvils and upgrade equipment with Ascension Gems.
 
-Level `0` is the base item. Scaling bonuses begin at level `1`.
+Level `1` is the item's base stats. Scaling bonuses begin at level `2`, so a level 5
+item has four levels of bonus. Items rolled by older versions re-roll once at their
+current level the next time they are in a player's inventory.
 
 ## Requirements
 
@@ -62,7 +64,8 @@ Example:
 ```
 
 Items configured in `fixed_item_levels.json` always use their configured fixed
-level, even when the command requests a different level.
+level, even when the command requests a different level. Items that cannot be
+scaled, such as blocks, are refused.
 
 ## Accessory Settings
 
@@ -96,9 +99,12 @@ The following is the content of that section, not the whole settings file:
 }
 ```
 
-With `value: 0.1`, an item gains roughly 10% of its base value per level.
-For example, a 20% effect at level 4 becomes 28% before randomness.
+With `value: 0.1`, an item gains roughly 10% of its base value per level above 1.
+For example, a 20% effect at level 4 becomes 26% before randomness.
 Cooldowns scale inversely, so higher levels reduce them instead.
+
+`scale_jewelry` and `scale_relics` turn everything for their items on or off
+together: worn stats, spell effects, cooldowns and tooltips.
 
 ## Anvil Settings
 
@@ -208,8 +214,10 @@ never count.
 The score is not rounded, so every upgraded piece lowers the penalties a little.
 For example, level 4 armor, a level 5 weapon and two level 5 rings give a gear
 score of `(4 × 4 + 5 × 2 + 5 + 5) / 8 = 4.5`. Adding a level 1 ring changes
-nothing. A few high-level accessories cannot make up for low-level armor. The survival inventory shows your gear score in a
-tab above its top-right corner while readiness is enabled.
+nothing. A few high-level accessories cannot make up for low-level armor.
+
+While readiness is enabled, a small tab with a sword icon on top of the survival
+inventory shows your gear score. Hover over it for a short explanation.
 
 ### Damage Multipliers
 
