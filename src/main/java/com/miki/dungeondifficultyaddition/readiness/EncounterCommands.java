@@ -27,6 +27,7 @@ final class EncounterCommands {
     }
 
     private static int encounter(ServerCommandSource source, MobEntity mob) {
+        if (disabled(source)) return 1;
         try {
             var encounter = Encounters.get(mob);
             reply(source, "Encounter: " + encounter + "; saved data: " + mob.getPersistentData().getCompound(Encounters.KEY));
@@ -49,9 +50,9 @@ final class EncounterCommands {
     }
 
     private static int player(ServerCommandSource source, ServerPlayerEntity player) {
+        if (disabled(source)) return 1;
         try {
             var slots = EquippedLevels.slots(player);
-            reply(source, "Readiness enabled: " + EncounterConfig.get().player_readiness.enabled);
             var gearScore = EquippedLevels.gearScore(slots);
             for (var slot : slots) reply(source, slot.name() + ": " + slot.item() + " level " + slot.level()
                     + (slot.weight() > 1 ? " (counts " + slot.weight() + "x)" : "")
@@ -63,6 +64,13 @@ final class EncounterCommands {
             source.sendError(Text.literal("Equipment lookup failed; see the server log."));
             return 0;
         }
+    }
+
+    /** With readiness off there is no gear score to show, matching the hidden inventory tab. */
+    private static boolean disabled(ServerCommandSource source) {
+        if (EncounterConfig.get().active()) return false;
+        reply(source, "Readiness is disabled (encounters.player_readiness.enabled in settings.json).");
+        return true;
     }
 
     private static void reply(ServerCommandSource source, String message) {
