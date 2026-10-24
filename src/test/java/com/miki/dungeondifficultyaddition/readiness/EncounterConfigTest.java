@@ -21,7 +21,7 @@ class EncounterConfigTest {
         config.player_readiness.maximum_outgoing_reduction = 1.1;
         assertThrows(IllegalArgumentException.class, config::validate);
         config.player_readiness.maximum_outgoing_reduction = .9;
-        config.player_readiness.required_equipped_items = 0;
+        config.player_readiness.unmarked_item_level = -1;
         assertThrows(IllegalArgumentException.class, config::validate);
     }
 }

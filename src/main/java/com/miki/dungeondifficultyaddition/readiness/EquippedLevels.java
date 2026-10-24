@@ -9,6 +9,7 @@ import net.minecraft.registry.Registries;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class EquippedLevels {
     public record Slot(String name, String item, int level) {}
@@ -25,17 +26,23 @@ public final class EquippedLevels {
         if (!stack.isEmpty()) slots.add(new Slot(name, Registries.ITEM.getId(stack.getItem()).toString(), level(stack)));
     }
 
+    /** All four armor slots (empty ones as level 0) plus occupied active Curios slots. */
     public static List<Slot> slots(PlayerEntity player) {
         var slots = new ArrayList<Slot>();
         for (var slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
-            add(slots, slot.getName(), player.getEquippedStack(slot));
+            var stack = player.getEquippedStack(slot);
+            if (stack.isEmpty()) slots.add(new Slot(slot.getName(), "empty", 0));
+            else add(slots, slot.getName(), stack);
         }
         if (OptionalModSupport.isLoaded("curios")) CuriosLevels.append(player, slots);
         return List.copyOf(slots);
     }
 
-    public static int readiness(List<Slot> slots) {
-        return ReadinessMath.readiness(slots.stream().map(Slot::level).toList(),
-                EncounterConfig.get().player_readiness.required_equipped_items, EncounterConfig.get().max_level);
+    public static double gearScore(List<Slot> slots) {
+        return ReadinessMath.gearScore(slots.stream().map(Slot::level).toList(), EncounterConfig.get().max_level);
+    }
+
+    public static String format(double gearScore) {
+        return String.format(Locale.ROOT, "%.1f", gearScore);
     }
 }

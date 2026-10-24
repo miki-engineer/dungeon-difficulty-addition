@@ -11,7 +11,6 @@ public final class EncounterConfig {
 
     public static final class Readiness {
         public boolean enabled = false;
-        public int required_equipped_items = 3;
         public int unmarked_item_level = 0;
         public double incoming_penalty_per_level = 0.25;
         public boolean outgoing_penalty_enabled = true;
@@ -25,7 +24,6 @@ public final class EncounterConfig {
         if (player_readiness == null || scopes == null
                 || scopes.stream().anyMatch(scope -> scope == null || scope.isBlank())
                 || max_level < 1 || max_level > 100000
-                || player_readiness.required_equipped_items < 1 || player_readiness.required_equipped_items > 128
                 || player_readiness.unmarked_item_level < 0 || player_readiness.unmarked_item_level > max_level
                 || !validRate(player_readiness.incoming_penalty_per_level)
                 || !validRate(player_readiness.outgoing_penalty_per_level)

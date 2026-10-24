@@ -175,11 +175,9 @@ This feature is **disabled by default** and is independent of accessory scaling.
   "player_readiness": {
     // Enables equipment readiness and its damage rules.
     "enabled": false,
-    // Number of equipped armor/Curios pieces needed at or above a level.
-    "required_equipped_items": 3,
     // Level used for items without a Dungeon Difficulty level marker.
     "unmarked_item_level": 0,
-    // Adds 25% damage taken per missing readiness level.
+    // Adds 25% damage taken per level your gear score is below the mob.
     "incoming_penalty_per_level": 0.25,
     // Enables the hit-time weapon level requirement for damage dealt.
     "outgoing_penalty_enabled": true,
@@ -195,23 +193,20 @@ This feature is **disabled by default** and is independent of accessory scaling.
 }
 ```
 
-### Required Pieces
+### Gear Score
 
-With `required_equipped_items: 3`, you need three equipped pieces at level 4
-or higher to count as readiness level 4. Set it to `2` to require only two pieces.
-For example, level 4 leggings alone give readiness 0; adding a level 4 chest
-piece gives readiness 4 when two pieces are required.
-
-Armor and active functional Curios count together. Hands, inventory items,
-cosmetic Curios, and empty slots do not count. Each occupied slot counts once.
-Fewer than the required number of pieces gives readiness 0; otherwise, the
-lowest level among your best required pieces determines readiness.
+Your gear score is the average level of your four armor slots and your
+occupied, active functional Curios slots. An empty armor slot counts as level 0;
+empty Curios slots, hands, inventory items and cosmetic Curios do not count.
+The score is not rounded, so every upgraded piece lowers the penalty a little.
+For example, level 4, 4, 4 and 5 armor with two level 5 rings gives a gear
+score of 4.5. A few high-level accessories cannot make up for low-level armor.
 
 ### Damage Multipliers
 
-Against a level 4 mob, readiness 0 with `incoming_penalty_per_level: 0.25`
-means four missing levels: `1 + 4 × 0.25 = 2`, or twice the incoming damage.
-Readiness 4 or higher removes this penalty.
+Against a level 5 mob, gear score 4.5 with `incoming_penalty_per_level: 0.25`
+means half a missing level: `1 + 0.5 × 0.25 = 1.125`, or 12.5% more incoming
+damage. Gear score 5 or higher removes this penalty.
 
 Damage dealt uses your main-hand item separately. With a level 0 main hand
 against a level 4 mob, `outgoing_penalty_per_level: 0.10` gives a 40% reduction.
@@ -220,8 +215,8 @@ removes this penalty. The reduction cannot exceed `maximum_outgoing_reduction`.
 
 ### Checking Your Settings
 
-Use `/dda_readiness` to see your equipped item levels, required piece count,
-readiness, and both hand levels. `/dda_readiness encounter <target>` also previews
+Use `/dda_readiness` to see your equipped item levels, gear score, and both
+hand levels. `/dda_readiness encounter <target>` also previews
 incoming and separate main/off-hand outgoing multipliers for that mob.
 In Survival with cheats/operator permission,
 use `/dda_damage_debug on` to log your next 20 incoming or outgoing hits in chat

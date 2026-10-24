@@ -55,9 +55,10 @@ public final class EncounterEvents {
                     rule = "incoming: no eligible recorded encounter";
                     return;
                 }
-                int readiness = EquippedLevels.readiness(EquippedLevels.slots(player));
-                rule = "incoming: " + encounter.scope() + " level=" + encounter.level() + ", armor/Curios readiness=" + readiness;
-                multiplier = ReadinessMath.incoming(encounter.level(), readiness, config.incoming_penalty_per_level);
+                double gearScore = EquippedLevels.gearScore(EquippedLevels.slots(player));
+                rule = "incoming: " + encounter.scope() + " level=" + encounter.level()
+                        + ", armor/Curios gear score=" + EquippedLevels.format(gearScore);
+                multiplier = ReadinessMath.incoming(encounter.level(), gearScore, config.incoming_penalty_per_level);
             } else if (config.outgoing_penalty_enabled && attacker instanceof ServerPlayerEntity player
                     && participating(player) && victim instanceof MobEntity mob) {
                 var encounter = Encounters.get(mob);
