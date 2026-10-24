@@ -31,6 +31,12 @@ public final class AccessoryItemScaling {
                 || (config.scale_relics && AccessoryFamilies.relics(namespace));
     }
 
+    /** One switch per family: enabled plus scale_jewelry/scale_relics turn every live value on or off. */
+    public static boolean isScalingEnabled(ItemStack stack) {
+        var config = AccessoryScalingConfig.get();
+        return config.enabled && isSupportedAccessory(stack, config);
+    }
+
     public static boolean isBuiltInExcluded(ItemStack stack) {
         return ItemTraits.of(stack).builtInExcluded();
     }

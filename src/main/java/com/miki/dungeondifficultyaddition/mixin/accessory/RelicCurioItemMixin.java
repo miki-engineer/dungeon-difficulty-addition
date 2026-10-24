@@ -29,7 +29,7 @@ public abstract class RelicCurioItemMixin {
     ) {
         var level = ItemScaling.getScaleFactor(stack);
         var original = cir.getReturnValue();
-        if (level <= 0 || original == null || original.isEmpty()) {
+        if (level <= 0 || original == null || original.isEmpty() || !AccessoryItemScaling.isScalingEnabled(stack)) {
             return;
         }
 

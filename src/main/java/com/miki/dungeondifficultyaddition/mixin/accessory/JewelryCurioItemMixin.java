@@ -27,7 +27,7 @@ public abstract class JewelryCurioItemMixin {
                             >
                     > cir
     ) {
-        if (ItemScaling.getScaleFactor(stack) <= 0) {
+        if (ItemScaling.getScaleFactor(stack) <= 0 || !AccessoryItemScaling.isScalingEnabled(stack)) {
             return;
         }
 
