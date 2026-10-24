@@ -179,9 +179,9 @@ This feature is **disabled by default** and is independent of accessory scaling.
     "unmarked_item_level": 0,
     // Adds 25% damage taken per level your gear score is below the mob.
     "incoming_penalty_per_level": 0.25,
-    // Enables the hit-time weapon level requirement for damage dealt.
+    // Enables the gear score requirement for damage dealt.
     "outgoing_penalty_enabled": true,
-    // Removes 10% damage dealt per missing weapon level.
+    // Removes 10% damage dealt per level your gear score is below the mob.
     "outgoing_penalty_per_level": 0.10,
     // Limits the outgoing damage reduction to 90%.
     "maximum_outgoing_reduction": 0.90
@@ -195,29 +195,38 @@ This feature is **disabled by default** and is independent of accessory scaling.
 
 ### Gear Score
 
-Your gear score is the average level of your four armor slots and your
-occupied, active functional Curios slots. An empty armor slot counts as level 0;
-empty Curios slots, hands, inventory items and cosmetic Curios do not count.
-The score is not rounded, so every upgraded piece lowers the penalty a little.
-For example, level 4, 4, 4 and 5 armor with two level 5 rings gives a gear
-score of 4.5. A few high-level accessories cannot make up for low-level armor.
+Your gear score is one number for both damage taken and damage dealt: the
+average level of your four armor slots and your weapon, which counts twice. The
+weapon is the one in your main hand; while you hold food, blocks or a torch, the
+last weapon you held still counts, so your score does not drop mid-fight. An
+empty armor slot, or no weapon held since joining, counts as level 0.
+
+Worn functional Curios count only when they raise your score, highest first, so
+an old low-level ring never makes you weaker. Empty and cosmetic Curios slots
+never count.
+
+The score is not rounded, so every upgraded piece lowers the penalties a little.
+For example, level 4 armor, a level 5 weapon and two level 5 rings give a gear
+score of `(4 × 4 + 5 × 2 + 5 + 5) / 8 = 4.5`. Adding a level 1 ring changes
+nothing. A few high-level accessories cannot make up for low-level armor. The survival inventory shows your gear score in a
+tab above its top-right corner while readiness is enabled.
 
 ### Damage Multipliers
 
-Against a level 5 mob, gear score 4.5 with `incoming_penalty_per_level: 0.25`
-means half a missing level: `1 + 0.5 × 0.25 = 1.125`, or 12.5% more incoming
-damage. Gear score 5 or higher removes this penalty.
+Against a level 5 mob, gear score 4.5 is half a missing level:
 
-Damage dealt uses your main-hand item separately. With a level 0 main hand
-against a level 4 mob, `outgoing_penalty_per_level: 0.10` gives a 40% reduction.
-Set it to `0.15` for a 60% reduction instead. A level 4 or higher main hand
-removes this penalty. The reduction cannot exceed `maximum_outgoing_reduction`.
+- Damage taken, with `incoming_penalty_per_level: 0.25`: `1 + 0.5 × 0.25 = 1.125`,
+  or 12.5% more.
+- Damage dealt, with `outgoing_penalty_per_level: 0.10`: `1 − 0.5 × 0.10 = 0.95`,
+  or 5% less. The reduction cannot exceed `maximum_outgoing_reduction`.
+
+Gear score 5 or higher removes both penalties.
 
 ### Checking Your Settings
 
-Use `/dda_readiness` to see your equipped item levels, gear score, and both
-hand levels. `/dda_readiness encounter <target>` also previews
-incoming and separate main/off-hand outgoing multipliers for that mob.
+Use `/dda_readiness` to see each counted slot's level and your gear score.
+`/dda_readiness encounter <target>` also previews the incoming and outgoing
+multipliers for that mob.
 In Survival with cheats/operator permission,
 use `/dda_damage_debug on` to log your next 20 incoming or outgoing hits in chat
 and `logs/latest.log`. Use `/dda_damage_debug off` to stop early.

@@ -43,5 +43,7 @@
   "salvage.dungeon_difficulty_addition.too_high": "Hammer too weak! Limit: %s | Item level: %s",
   "salvage.dungeon_difficulty_addition.occupied": "This anvil already holds equipment",
   "salvage.dungeon_difficulty_addition.progress": "Salvaging: %s/3",
-  "salvage.dungeon_difficulty_addition.complete": "Salvaged! Fragment dropped."
+  "salvage.dungeon_difficulty_addition.complete": "Salvaged! Fragment dropped.",
+  "gui.dungeon_difficulty_addition.gear_score.title": "Gear Score %s",
+  "gui.dungeon_difficulty_addition.gear_score.hint": "The average level of your armor and your weapon (counts twice; the last one you held). Curios count only when they raise it. Below a dungeon's level, you take more damage and deal less."
 }
