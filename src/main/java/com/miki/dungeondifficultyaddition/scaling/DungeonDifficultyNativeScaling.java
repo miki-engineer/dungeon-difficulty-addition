@@ -28,15 +28,25 @@ final class DungeonDifficultyNativeScaling {
     private static final ClassValue<Boolean> HAS_DYNAMIC_DEFAULT_ATTRIBUTES = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> itemClass) {
-            try {
-                return itemClass
-                        .getMethod("getDefaultAttributeModifiers", ItemStack.class)
-                        .getDeclaringClass() != IItemExtension.class;
-            } catch (NoSuchMethodException exception) {
-                return false;
-            }
+            return hasDynamicDefaultAttributes(itemClass);
         }
     };
+
+    static boolean hasDynamicDefaultAttributes(Class<?> itemClass) {
+        try {
+            return itemClass
+                    .getMethod("getDefaultAttributeModifiers", ItemStack.class)
+                    .getDeclaringClass() != IItemExtension.class;
+        } catch (NoSuchMethodException exception) {
+            return false;
+        } catch (RuntimeException | LinkageError exception) {
+            // getMethod resolves every method signature of the class. On a dedicated server, an
+            // item with a client-only type in any signature (e.g. PoseStack) throws here; treat it
+            // as having static defaults rather than failing every tick.
+            ScalingErrors.warnOnce("dynamic attribute lookup", itemClass.getName(), exception);
+            return false;
+        }
+    }
 
     private DungeonDifficultyNativeScaling() {
     }

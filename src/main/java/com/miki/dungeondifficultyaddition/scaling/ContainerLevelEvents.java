@@ -35,7 +35,7 @@ public final class ContainerLevelEvents {
             var stack = slot.getStack();
             // Existing dungeon levels are authoritative; do not pre-empt location-aware loot generation.
             if (!AccessoryItemScaling.needsMinimumLevel(stack)) continue;
-            AccessoryItemScaling.enforceFixedLevel(stack);
+            ScalingErrors.guard("container level", stack, () -> AccessoryItemScaling.enforceFixedLevel(stack));
             if (net.dungeon_difficulty.logic.ItemScaling.getScaleFactor(stack) <= 0) continue;
             slot.markDirty();
             changed = true;

@@ -1,6 +1,7 @@
 package com.miki.dungeondifficultyaddition.mixin.item;
 
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
+import com.miki.dungeondifficultyaddition.scaling.ScalingErrors;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -40,7 +41,8 @@ public abstract class FixedItemStackScalingMixin {
 
     private void dungeonDifficultyAddition$enforceOnServer(World world) {
         if (!world.isClient) {
-            AccessoryItemScaling.enforceFixedLevel((ItemStack) (Object) this);
+            var stack = (ItemStack) (Object) this;
+            ScalingErrors.guard("inventory level", stack, () -> AccessoryItemScaling.enforceFixedLevel(stack));
         }
     }
 }
