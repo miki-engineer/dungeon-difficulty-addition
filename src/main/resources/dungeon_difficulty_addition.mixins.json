@@ -19,6 +19,7 @@
     "item.FixedItemEntityScalingMixin",
     "item.FixedItemStackScalingMixin",
     "loot.ItemScalingMixin",
+    "loot.LevelBonusMixin",
     "loot.ItemScalingInvoker",
     "loot.LegendaryMonsterScalingMixin",
     "relic.ItemStackTooltipMixin",
