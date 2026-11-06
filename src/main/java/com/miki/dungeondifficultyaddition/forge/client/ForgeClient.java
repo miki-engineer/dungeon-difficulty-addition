@@ -24,7 +24,8 @@ public final class ForgeClient {
             // Spell tooltips push relic levels on the render thread; see RelicEffectScaling.reset.
             NeoForge.EVENT_BUS.addListener(ClientTickEvent.Pre.class, tick -> RelicEffectScaling.reset());
         }
-        NeoForge.EVENT_BUS.addListener(GearScoreDisplay::render);
+        NeoForge.EVENT_BUS.addListener(GearScoreDisplay::renderTab);
+        NeoForge.EVENT_BUS.addListener(GearScoreDisplay::renderTooltip);
         event.enqueueWork(() -> {
             ForgeTooltips.setDetailsKeyCheck(Screen::hasShiftDown);
             ForgeTooltips.setTooltipWrapper(ForgeClient::wrapTooltip);

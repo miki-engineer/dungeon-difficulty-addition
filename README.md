@@ -32,6 +32,7 @@ Optional integrations:
 - Spell Engine 1.10.1 or newer
 - Curios
 - JEI or EMI
+- Smooth GUI (the gear score tab slides in with the inventory)
 
 ## Installation
 

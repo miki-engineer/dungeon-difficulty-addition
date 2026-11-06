@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 
 import java.util.List;
@@ -28,10 +29,18 @@ final class GearScoreDisplay {
     // Below the sprite's 2 transparent rows and its bevel; the value sits clear of the right bevel.
     private static final int ICON_SIZE = 16, ICON_X = 5, ICON_Y = 6, FACE_TOP = 5, GAP = 3, RIGHT_PADDING = 6;
     private static final int HOVER = 0x30FFFFFF;
+    // The value hovered this frame, handed from the tab pass to the tooltip pass; null when not hovered.
+    private static String hoveredValue;
     private GearScoreDisplay() {}
 
-    static void render(ScreenEvent.Render.Post event) {
-        if (!(event.getScreen() instanceof InventoryScreen screen) || !EncounterConfig.get().active()) return;
+    /**
+     * Fired inside the screen's own render, right after the panel. Screen-animation mods such as
+     * Smooth GUI transform that whole render, so the tab moves with the inventory instead of
+     * appearing at its final position while the panel is still sliding in.
+     */
+    static void renderTab(ContainerScreenEvent.Render.Background event) {
+        hoveredValue = null;
+        if (!(event.getContainerScreen() instanceof InventoryScreen screen) || !EncounterConfig.get().active()) return;
         var client = MinecraftClient.getInstance();
         if (client.player == null) return;
         double gearScore;
@@ -56,7 +65,15 @@ final class GearScoreDisplay {
         context.drawGuiTexture(ICON, iconX, iconY, ICON_SIZE, ICON_SIZE);
         // White with shadow, like text on vanilla buttons; vertically centred on the icon.
         context.drawText(font, value, iconX + ICON_SIZE + GAP, iconY + 4, 0xFFFFFF, true);
-        if (hovered) context.drawTooltip(font, List.of(
+        if (hovered) hoveredValue = value;
+    }
+
+    /** After the whole screen, outside any screen animation: tooltips belong at the mouse, on top. */
+    static void renderTooltip(ScreenEvent.Render.Post event) {
+        var value = hoveredValue;
+        hoveredValue = null;
+        if (value == null || !(event.getScreen() instanceof InventoryScreen)) return;
+        event.getGuiGraphics().drawTooltip(MinecraftClient.getInstance().textRenderer, List.of(
                 Text.translatable("gui.dungeon_difficulty_addition.gear_score.title", value).formatted(Formatting.GOLD),
                 Text.translatable("gui.dungeon_difficulty_addition.gear_score.hint").formatted(Formatting.GRAY)),
                 event.getMouseX(), event.getMouseY());
