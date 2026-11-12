@@ -1,17 +1,29 @@
 package com.miki.dungeondifficultyaddition.forge;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.World;
 import java.util.List;
 
 public final class SalvageHammerItem extends Item {
+    private static final SalvageConfig DEFAULTS = new SalvageConfig();
     private final HammerTier tier;
     public SalvageHammerItem(HammerTier tier) {
-        super(new Settings().maxDamage(SalvageConfig.get().durability(tier)));
+        // Item defaults are not synced, so a configured default made each side use its own
+        // settings.json. Register the built-in value and let the server patch each stack instead.
+        super(new Settings().maxDamage(DEFAULTS.durability(tier)));
         this.tier = tier;
+    }
+    @Override public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        if (world.isClient) return;
+        int durability = SalvageConfig.get().durability(tier);
+        // Setting the built-in value clears the patch again, so this settles after one tick.
+        if (stack.getMaxDamage() != durability) stack.set(DataComponentTypes.MAX_DAMAGE, durability);
     }
     public boolean accepts(int level) {
         var config = SalvageConfig.get();

@@ -25,7 +25,7 @@ class MixinConfigurationTest {
                     assertNotNull(loader.getResource(name.replace('.', '/') + ".class"), name);
                 }
             }
-            assertEquals(33, names.size(), "Keep existing hooks and the optional Legendary Monsters active hooks");
+            assertEquals(32, names.size(),"Keep existing hooks and the optional Legendary Monsters active hooks");
             assertTrue(config.getAsJsonArray("mixins").asList().stream()
                     .anyMatch(entry -> entry.getAsString().equals("loot.LegendaryMonsterScalingMixin")));
             // The level-1 rule covers every item, so it lives outside the Jewelry/Relics-gated ItemScalingMixin.

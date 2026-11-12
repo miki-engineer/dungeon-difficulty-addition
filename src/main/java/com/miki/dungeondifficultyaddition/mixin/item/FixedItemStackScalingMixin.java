@@ -1,6 +1,7 @@
 package com.miki.dungeondifficultyaddition.mixin.item;
 
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
+import com.miki.dungeondifficultyaddition.scaling.FixedLevelPreview;
 import com.miki.dungeondifficultyaddition.scaling.ScalingErrors;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -32,6 +33,9 @@ public abstract class FixedItemStackScalingMixin {
             CallbackInfo ci
     ) {
         dungeonDifficultyAddition$enforceOnServer(world);
+        if (!world.isClient) {
+            FixedLevelPreview.crafted((ItemStack) (Object) this);
+        }
     }
 
     @Inject(method = "onCraftByCrafter", at = @At("TAIL"))

@@ -13,8 +13,6 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.internals.container.SpellContainerSource;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -64,7 +62,9 @@ public final class RelicEffectScaling {
 
     public static double scaledValue(String attributeId, double baseValue, int level) {
         var bonusLevels = LevelBonus.bonusLevels(level);
-        if (bonusLevels <= 0) {
+        // A negative value can be a drawback (-30% movement speed) or a benefit (-65% damage
+        // taken, which would pass -100% within a few levels). Keep both at base, like equipment.
+        if (bonusLevels <= 0 || baseValue < 0D) {
             return baseValue;
         }
 
@@ -100,13 +100,6 @@ public final class RelicEffectScaling {
         return (float) Math.max(0D, Math.min(1D, scaled));
     }
 
-    public static String compactNumber(double value) {
-        return BigDecimal.valueOf(value)
-                .setScale(1, RoundingMode.HALF_UP)
-                .stripTrailingZeros()
-                .toPlainString();
-    }
-
     public static int level(PlayerEntity player, RegistryEntry<Spell> spellEntry) {
         return relicLevel(player, spellEntry);
     }
@@ -127,12 +120,18 @@ public final class RelicEffectScaling {
             return 0;
         }
 
-        var source = SpellContainerSource.getFirstSourceOfSpell(spellId, player);
-        if (source == null) {
-            return 0;
+        // Spell Engine merges one spell granted by several items, so no single item casts it.
+        // Use the best equipped copy: the first source depended on slot order and could leave
+        // damage at level 1 while the tooltip of a level 10 copy showed scaled values.
+        var spellIdText = spellId.toString();
+        var best = 0;
+        for (var source : SpellContainerSource.getSpellsOf(player).sources()) {
+            var container = source.container();
+            if (container != null && container.spell_ids().contains(spellIdText)) {
+                best = Math.max(best, scaledRelicLevel(source.itemStack()));
+            }
         }
-
-        return scaledRelicLevel(source.itemStack());
+        return best;
     }
 
     // Also gates the stack-based path used by cooldowns, estimates and spell tooltips.

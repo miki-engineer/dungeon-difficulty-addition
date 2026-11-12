@@ -3,6 +3,8 @@
 .idea/
 build/
 run/
+# Written by tests that log through Minecraft's logger.
+logs/
 *.iml
 out/
 !**/src/main/**/out/

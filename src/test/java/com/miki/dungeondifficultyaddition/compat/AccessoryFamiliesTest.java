@@ -21,9 +21,4 @@ class AccessoryFamiliesTest {
         assertFalse(AccessoryFamilies.material("additional_rpg_jewelry:aquamarine_ring"));
         assertFalse(AccessoryFamilies.material("additional_rpg_jewelry:malachite_necklace"));
     }
-    @Test void effectDescriptionsUseTheOwningModsConfig() {
-        assertEquals("relics", AccessoryFamilies.effectsDirectory("relics_rpgs"));
-        assertEquals("more_relics", AccessoryFamilies.effectsDirectory("more_relics"));
-        assertNull(AccessoryFamilies.effectsDirectory("unrelated"));
-    }
 }

@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.regex.PatternSyntaxException;
 /** Fixed-level rules and legacy decoding, independent of game registries and file I/O. */
 final class FixedItemLevels {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Logger LOGGER = LoggerFactory.getLogger("dungeon_difficulty_addition");
     private static final Pattern LEGACY_LEVEL_KEY = Pattern.compile("level_(\\d+)");
     private final NavigableMap<Integer, List<String>> levels = new TreeMap<>();
     private List<CompiledRule> compiled = List.of();
@@ -49,7 +52,12 @@ final class FixedItemLevels {
         for (var entry : levels.descendingMap().entrySet()) for (var text : entry.getValue()) {
             if (text == null || text.isEmpty()) continue;
             Pattern regex = null;
-            try { regex = Pattern.compile(text); } catch (PatternSyntaxException ignored) {}
+            try {
+                regex = Pattern.compile(text);
+            } catch (PatternSyntaxException exception) {
+                LOGGER.warn("fixed_item_levels.json: \"{}\" is not a valid regex ({}); it only matches that exact item ID.",
+                        text, exception.getDescription());
+            }
             rules.add(new CompiledRule(entry.getKey(), text, regex));
         }
         compiled = List.copyOf(rules);
@@ -125,10 +133,19 @@ final class FixedItemLevels {
             if (!rule.has("item") || !rule.has("level")) {
                 continue;
             }
-            var level = rule.get("level").getAsInt();
+            int level;
+            String item;
+            try {
+                level = rule.get("level").getAsInt();
+                item = rule.get("item").getAsString();
+            } catch (RuntimeException exception) {
+                // getAsInt/getAsString throw for text, objects and arrays; skip just this rule.
+                LOGGER.warn("Skipping legacy fixed-level rule {}: needs a text \"item\" and a whole-number \"level\".", rule);
+                continue;
+            }
             if (level >= 1) {
                 var items = new ArrayList<>(result.levels.getOrDefault(level, List.of()));
-                items.add(rule.get("item").getAsString());
+                items.add(item);
                 result.levels.put(level, List.copyOf(items));
             }
         }

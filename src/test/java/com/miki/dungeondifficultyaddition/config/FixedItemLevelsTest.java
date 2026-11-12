@@ -78,6 +78,7 @@ class FixedItemLevelsTest {
         var levels = FixedItemLevels.fromLegacy(json("""
                 {"fixed_item_levels":[{"item":"minecraft:shield","level":2},
                 {"item":"minecraft:bow","level":2},{"item":".*","level":0},
+                {"item":"minecraft:stone","level":"high"},{"item":{},"level":3},
                 {},false]}
                 """));
         assertEquals(json("""

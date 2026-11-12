@@ -22,7 +22,6 @@
     "loot.LevelBonusMixin",
     "loot.ItemScalingInvoker",
     "loot.LegendaryMonsterScalingMixin",
-    "relic.ItemStackTooltipMixin",
     "accessory.JewelryCurioItemMixin",
     "accessory.RelicCurioItemMixin",
     "relic.SpellAreaImpactMixin",

@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class CraftingResultInventoryMixin {
     @ModifyVariable(method = "setStack", at = @At("HEAD"), argsOnly = true)
     private ItemStack dungeonDifficultyAddition$scaleCraftingResultPreview(ItemStack stack) {
-        return FixedLevelPreview.scaledCopy(stack);
+        return FixedLevelPreview.craftingResult(stack);
     }
 }

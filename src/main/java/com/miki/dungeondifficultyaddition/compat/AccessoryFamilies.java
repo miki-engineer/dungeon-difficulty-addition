@@ -13,11 +13,4 @@ public final class AccessoryFamilies {
     public static boolean material(String id) {
         return "additional_rpg_jewelry:aquamarine".equals(id) || "additional_rpg_jewelry:malachite".equals(id);
     }
-    public static String effectsDirectory(String namespace) {
-        return switch (namespace) {
-            case "relics_rpgs" -> "relics";
-            case "more_relics" -> "more_relics";
-            default -> null;
-        };
-    }
 }

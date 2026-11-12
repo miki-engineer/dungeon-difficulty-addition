@@ -70,19 +70,29 @@ dependencies {
     modCompileOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
     modCompileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.27.0.336"
     modCompileOnly "dev.emi:emi-neoforge:1.1.24+1.21.1:api"
-    modRuntimeOnly "maven.modrinth:${dungeon_difficulty_modrinth_project}:${dungeon_difficulty_modrinth_version}"
+    // A local jar with the same file name prefix wins; two copies of one mod fail to load.
+    def runtimeMod = { String localPrefix, String notation ->
+        if (fileTree(dir: "run/dependencies", include: ["${localPrefix}*.jar"]).isEmpty()) {
+            project.dependencies.add("modRuntimeOnly", notation)
+        }
+    }
+    runtimeMod("dungeon_difficulty-", "maven.modrinth:${dungeon_difficulty_modrinth_project}:${runtime_dungeon_difficulty}")
     if (!project.hasProperty("anvilPreview")) {
-        modRuntimeOnly "maven.modrinth:${jewelry_modrinth_project}:${jewelry_modrinth_version}"
+        runtimeMod("jewelry-", "maven.modrinth:${jewelry_modrinth_project}:${runtime_jewelry}")
+        runtimeMod("structure_pool_api-", "maven.modrinth:structure-pool-api:${runtime_structure_pool_api}")
     }
-    if (fileTree(dir: "run/dependencies", include: ["relics-*.jar"]).isEmpty()) {
-        modRuntimeOnly "maven.modrinth:${relics_modrinth_project}:${relics_modrinth_version}"
-    }
+    runtimeMod("relics-", "maven.modrinth:${relics_modrinth_project}:${runtime_relics}")
+    runtimeMod("spell_engine-", "maven.modrinth:spell-engine:${runtime_spell_engine}")
+    runtimeMod("spell_power-", "maven.modrinth:spell-power:${runtime_spell_power}")
+    runtimeMod("ranged_weapon_api-", "maven.modrinth:ranged-weapon-api:${runtime_ranged_weapon_api}")
+    runtimeMod("cloth-config-", "maven.modrinth:cloth-config:${runtime_cloth_config}")
+    runtimeMod("player-animation-lib-", "maven.modrinth:playeranimator:${runtime_player_animator}")
+    // Jewelry 2.5 equips through Curios only on NeoForge.
+    runtimeMod("curios-", "top.theillusivec4.curios:curios-neoforge:${runtime_curios}")
+    runtimeMod("jei-", "mezz.jei:jei-1.21.1-neoforge:${runtime_jei}")
     modRuntimeOnly "maven.modrinth:tiny-config:${tiny_config_version}"
     modRuntimeOnly "io.wispforest:accessories-neoforge:${accessories_version}"
     modRuntimeOnly "io.wispforest:owo-lib-neoforge:0.12.15.1-beta.6+1.21"
-    if (fileTree(dir: "run/dependencies", include: ["spell_engine-*.jar"]).isEmpty()) {
-        modRuntimeOnly "curse.maven:spell-engine-${spell_engine_curseforge_project}:${spell_engine_curseforge_file}"
-    }
 }
 
 processResources {

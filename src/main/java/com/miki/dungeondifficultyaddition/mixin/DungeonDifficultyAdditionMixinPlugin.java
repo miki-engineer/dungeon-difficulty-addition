@@ -26,7 +26,7 @@ public final class DungeonDifficultyAdditionMixinPlugin implements IMixinConfigP
         return switch (mixinName) {
             case "ItemScalingMixin" -> isLoaded(DungeonDifficultyAddition.JEWELRY_MOD_ID)
                     || isLoaded(DungeonDifficultyAddition.RELICS_MOD_ID);
-            case "ItemStackTooltipMixin", "StatusEffectMixin" -> hasRelicSpellSupport();
+            case "StatusEffectMixin" -> hasRelicSpellSupport();
             case "JewelryCurioItemMixin" -> isLoaded(DungeonDifficultyAddition.JEWELRY_MOD_ID)
                     && isLoaded("curios");
             case "RelicCurioItemMixin" -> isLoaded(DungeonDifficultyAddition.RELICS_MOD_ID)
