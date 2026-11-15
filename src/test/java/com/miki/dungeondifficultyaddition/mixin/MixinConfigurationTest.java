@@ -25,12 +25,17 @@ class MixinConfigurationTest {
                     assertNotNull(loader.getResource(name.replace('.', '/') + ".class"), name);
                 }
             }
-            assertEquals(32, names.size(),"Keep existing hooks and the optional Legendary Monsters active hooks");
+            assertEquals(35, names.size(), "Keep existing hooks and the optional Legendary Monsters active hooks");
             assertTrue(config.getAsJsonArray("mixins").asList().stream()
                     .anyMatch(entry -> entry.getAsString().equals("loot.LegendaryMonsterScalingMixin")));
             // The level-1 rule covers every item, so it lives outside the Jewelry/Relics-gated ItemScalingMixin.
             assertTrue(config.getAsJsonArray("mixins").asList().stream()
                     .anyMatch(entry -> entry.getAsString().equals("loot.LevelBonusMixin")));
+            // Mob stats, mob XP and spawners follow the same level-1 rule as equipment.
+            for (var mob : new String[]{"loot.EntityLevelBonusMixin", "loot.ExperienceLevelBonusMixin",
+                    "loot.SpawnerLevelBonusMixin"})
+                assertTrue(config.getAsJsonArray("mixins").asList().stream()
+                        .anyMatch(entry -> entry.getAsString().equals(mob)), mob);
             assertTrue(config.getAsJsonArray("client").asList().stream()
                     .anyMatch(entry -> entry.getAsString().equals("client.HandledScreenCursorMixin")));
             var plugin = config.get("plugin").getAsString();

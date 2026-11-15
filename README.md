@@ -17,6 +17,11 @@ Level `1` is the item's base stats. Scaling bonuses begin at level `2`, so a lev
 item has four levels of bonus. Items rolled by older versions re-roll once at their
 current level the next time they are in a player's inventory.
 
+Dungeon Difficulty mobs follow the same rule: a level 1 mob has vanilla stats and drops
+vanilla experience, and spawners in level 1 zones keep their vanilla settings. Mob,
+experience and spawner bonuses also begin at level `2`. Mobs that already spawned
+keep their stats until they despawn or are replaced.
+
 ## Requirements
 
 - Minecraft 1.21.1

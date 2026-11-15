@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Applies to every item roll, so unlike the accessory hooks it must not depend on Jewelry or Relics. */
 @Mixin(value = ItemScaling.class, remap = false)
 public abstract class LevelBonusMixin {
-    // Every item roll (loot, fixed, manual, anvil, Legendary Monsters) passes through here; mob
-    // scaling uses EntityScaling and keeps Dungeon Difficulty's own level formula.
+    // Every item roll (loot, fixed, manual, anvil, Legendary Monsters) passes through here. Mobs
+    // follow the same rule through the Entity, Experience and Spawner LevelBonus mixins.
     @Redirect(
             method = "applyModifiersForItemStack",
             at = @At(value = "INVOKE",
