@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** A level-1 mob has vanilla stats; mob bonuses count from level 2, matching equipment. */
+/** Through LevelBonus: with the level-1 rule on, a level-1 mob has vanilla stats, matching equipment. */
 @Mixin(value = EntityScaling.class, remap = false)
 public abstract class EntityLevelBonusMixin {
     // Dungeon Difficulty's only level-to-stat step for mobs: every attribute bonus is rolled here.

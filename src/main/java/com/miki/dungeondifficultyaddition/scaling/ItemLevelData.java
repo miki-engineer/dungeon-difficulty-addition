@@ -15,8 +15,9 @@ final class ItemLevelData {
     private static final String LEGACY_FIXED_REVISION_MARKER = "dd_jewelry_compat.fixed_revision";
     private static final String FORMULA_REVISION_MARKER = "dungeon_difficulty_addition.formula_revision";
     static final int FIXED_REVISION = 13;
-    // 1: level 1 is base stats. Unmarked scaled stacks carry one extra bonus level.
-    static final int FORMULA_REVISION = 1;
+    // Which formula a stack was rolled with: 1 = level 1 is base, 2 = Dungeon Difficulty's original.
+    // Unmarked stacks predate 2.4.0 and used the original formula.
+    static final int LEVEL_ONE_BASE_FORMULA = 1, ORIGINAL_FORMULA = 2;
 
     private ItemLevelData() {
     }
@@ -92,13 +93,17 @@ final class ItemLevelData {
 
     static void markCurrentFormula(ItemStack stack) {
         stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
-                data -> data.apply(nbt -> nbt.putInt(FORMULA_REVISION_MARKER, FORMULA_REVISION)));
+                data -> data.apply(nbt -> nbt.putInt(FORMULA_REVISION_MARKER, currentFormula())));
     }
 
     static boolean hasCurrentFormula(ItemStack stack) {
         var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
-        return customData != null && customData.contains(FORMULA_REVISION_MARKER)
-                && customData.getNbt().getInt(FORMULA_REVISION_MARKER) == FORMULA_REVISION;
+        if (customData == null || !customData.contains(FORMULA_REVISION_MARKER)) return currentFormula() == ORIGINAL_FORMULA;
+        return customData.getNbt().getInt(FORMULA_REVISION_MARKER) == currentFormula();
+    }
+
+    private static int currentFormula() {
+        return LevelBonus.levelOneIsBase() ? LEVEL_ONE_BASE_FORMULA : ORIGINAL_FORMULA;
     }
 
     static int manualLevelMarker(ItemStack stack) {

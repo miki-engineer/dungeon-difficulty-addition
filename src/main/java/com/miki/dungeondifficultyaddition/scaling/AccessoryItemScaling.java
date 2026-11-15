@@ -180,7 +180,7 @@ public final class AccessoryItemScaling {
         if (applyLevel(stack, Math.max(current, floor))) LegendaryMonsterAttributes.markRepaired(stack);
     }
 
-    /** Stacks rolled before level 1 became base carry one extra bonus level; re-roll them once at their level. */
+    /** Stacks rolled with the other level-1 formula (or before 2.4.0) re-roll once at their level to match. */
     private static void rerollPreviousFormula(ItemStack stack) {
         int level = ItemScaling.getScaleFactor(stack);
         if (level <= 0 || ItemLevelData.hasCurrentFormula(stack)) return;

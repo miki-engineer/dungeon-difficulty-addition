@@ -1,6 +1,8 @@
 package com.miki.dungeondifficultyaddition.gametest;
 
 import com.miki.dungeondifficultyaddition.DungeonDifficultyAddition;
+import com.miki.dungeondifficultyaddition.config.AccessoryScalingConfig;
+import com.miki.dungeondifficultyaddition.scaling.LevelBonus;
 import com.miki.dungeondifficultyaddition.mixin.loot.ItemScalingInvoker;
 import net.dungeon_difficulty.config.Config;
 import net.dungeon_difficulty.logic.EntityScaling;
@@ -22,8 +24,12 @@ import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.fml.loading.FMLPaths;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -126,5 +132,47 @@ public final class LevelBonusGameTests {
         context.assertTrue(Math.abs(levelOne - base) < EPSILON, "Level 1 sword keeps base damage " + base + ", got " + levelOne);
         context.assertTrue(Math.abs(levelThree - (base + 2)) < EPSILON, "Level 3 sword has +2 damage, got " + levelThree);
         context.complete();
+    }
+
+    /**
+     * The level-1 rule follows scaling.minimum_equipment_level_enabled. Switch it off in this server's real
+     * settings file, reload, and check that equipment, mobs and spawners all use Dungeon Difficulty's
+     * original math again; the file is restored and reloaded even if an assertion fails.
+     */
+    @GameTest(templateName = "test_empty")
+    public static void switchOffRestoresOriginalMath(TestContext context) throws Exception {
+        var settings = FMLPaths.CONFIGDIR.get().resolve("dungeon_difficulty_addition").resolve("settings.json");
+        var original = Files.readString(settings);
+        var switchedOff = original.replace("\"minimum_equipment_level_enabled\": true", "\"minimum_equipment_level_enabled\": false");
+        context.assertTrue(!switchedOff.equals(original), "Test config has minimum_equipment_level_enabled: true");
+        try {
+            Files.writeString(settings, switchedOff);
+            AccessoryScalingConfig.reload();
+            context.assertTrue(!LevelBonus.levelOneIsBase(), "Switch off disables the level-1 rule");
+
+            double base = attackDamage(new ItemStack(Items.IRON_SWORD));
+            context.assertTrue(Math.abs(attackDamage(rolledSword(1)) - (base + 1)) < EPSILON,
+                    "Original math: level 1 sword has +1 damage, got " + attackDamage(rolledSword(1)));
+            context.assertTrue(Math.abs(attackDamage(rolledSword(3)) - (base + 3)) < EPSILON,
+                    "Original math: level 3 sword has +3 damage, got " + attackDamage(rolledSword(3)));
+
+            var mob = context.spawnEntity(EntityType.ZOMBIE, MOB);
+            double baseHealth = value(mob, EntityAttributes.GENERIC_MAX_HEALTH);
+            scaleMob(mob, 1, modifier("minecraft:generic.max_health", Config.Operation.MULTIPLY_BASE, 0.25F));
+            context.assertTrue(Math.abs(value(mob, EntityAttributes.GENERIC_MAX_HEALTH) - baseHealth * 1.25) < EPSILON,
+                    "Original math: level 1 mob has +25% health, got " + value(mob, EntityAttributes.GENERIC_MAX_HEALTH));
+
+            context.assertTrue(new PatternMatching.SpawnerScaleResult(List.of(), 1).level() == 1,
+                    "Original math: a level 1 spawner has one bonus level");
+        } finally {
+            restore(settings, original);
+        }
+        context.assertTrue(LevelBonus.levelOneIsBase(), "Restored config turns the level-1 rule back on");
+        context.complete();
+    }
+
+    private static void restore(Path settings, String original) throws IOException {
+        Files.writeString(settings, original);
+        AccessoryScalingConfig.reload();
     }
 }

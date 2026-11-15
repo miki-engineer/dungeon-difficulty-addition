@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** Mob XP is multiplied by (1 + multiplier × level); a level-1 mob drops vanilla XP. */
+/** Mob XP is multiplied by (1 + multiplier × level); with the level-1 rule on, level 1 drops vanilla XP. */
 @Mixin(value = ExperienceScaling.class, remap = false)
 public abstract class ExperienceLevelBonusMixin {
     // The level is read exactly once, inside the XP multiplier.

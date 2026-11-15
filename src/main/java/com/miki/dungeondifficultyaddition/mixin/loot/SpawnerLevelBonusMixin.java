@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * A spawner in a level-1 zone keeps vanilla settings. Dungeon Difficulty's spawner mixin is the only
+ * With the level-1 rule on, a spawner in a level-1 zone keeps vanilla settings. Dungeon Difficulty's spawner mixin is the only
  * reader of this accessor (six multipliers × level), so shifting it here covers every spawner setting.
  */
 @Mixin(value = PatternMatching.SpawnerScaleResult.class, remap = false)

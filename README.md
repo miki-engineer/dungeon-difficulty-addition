@@ -22,6 +22,11 @@ vanilla experience, and spawners in level 1 zones keep their vanilla settings. M
 experience and spawner bonuses also begin at level `2`. Mobs that already spawned
 keep their stats until they despawn or are replaced.
 
+This level 1 rule is tied to `minimum_equipment_level_enabled` (on by default). Turning
+it off, or turning off `enabled`, restores Dungeon Difficulty's original math for both
+equipment and mobs, where level 1 already has one level of bonus. Changing the setting
+re-rolls existing equipment once, so its stats match the new math.
+
 ## Requirements
 
 - Minecraft 1.21.1
@@ -82,7 +87,8 @@ The following is the content of that section, not the whole settings file:
 {
   // Enables this section's scaling features, not the independent anvil/readiness systems.
   "enabled": true,
-  // Gives unlevelled equipment level 1. Requires enabled = true.
+  // Gives unlevelled equipment level 1 and makes level 1 base stats for equipment
+  // and mobs (bonuses from level 2). Requires enabled = true.
   "minimum_equipment_level_enabled": true,
   // Scales Jewelry items.
   "scale_jewelry": true,
