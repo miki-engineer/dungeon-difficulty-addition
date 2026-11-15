@@ -34,6 +34,14 @@ public final class ReadinessMath {
         return count == 0 ? 0 : (double) sum / count;
     }
 
+    /**
+     * When level 1 is base stats, a player with no gear, or only base gear, is level 1: the score never
+     * drops below 1, so level 1 zones never penalise. Empty slots still lower a score that is above 1.
+     */
+    public static double withLevelOneFloor(double gearScore, boolean levelOneIsBase) {
+        return levelOneIsBase ? Math.max(1, gearScore) : gearScore;
+    }
+
     public static int clamp(int level, int maxLevel) {
         return Math.max(0, Math.min(level, maxLevel));
     }

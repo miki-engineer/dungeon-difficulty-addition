@@ -57,6 +57,16 @@ class ReadinessMathTest {
         assertEquals(1 - (5 - 22 / 6D) * .10, ReadinessMath.outgoing(5, gearScore, .10, .90), 1e-9);
     }
 
+    @Test void levelOneFloorFollowsTheLevelOneRule() {
+        var naked = ReadinessMath.gearScore(List.of(0, 0, 0, 0, 0, 0), 1000);
+        assertEquals(1, ReadinessMath.withLevelOneFloor(naked, true), 1e-9);
+        assertEquals(1, ReadinessMath.incoming(1, ReadinessMath.withLevelOneFloor(naked, true), .25), 1e-9);
+        assertEquals(0, ReadinessMath.withLevelOneFloor(naked, false), 1e-9);
+        // A floor, not a shift: scores above 1 are unchanged, and empty slots still count against them.
+        var partial = ReadinessMath.gearScore(List.of(3, 3, 3, 0, 3, 3), 1000);
+        assertEquals(2.5, ReadinessMath.withLevelOneFloor(partial, true), 1e-9);
+    }
+
     @Test void emptyAndInvalidLevels() {
         assertEquals(0, ReadinessMath.gearScore(List.of(), 1000));
         assertEquals(2, ReadinessMath.gearScore(List.of(4, 4, -3, 0), 1000), 1e-9);

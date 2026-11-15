@@ -219,6 +219,10 @@ weapon is the one in your main hand; while you hold food, blocks or a torch, the
 last weapon you held still counts, so your score does not drop mid-fight. An
 empty armor slot, or no weapon held since joining, counts as level 0.
 
+While level 1 is base stats (`minimum_equipment_level_enabled`), every player starts
+at gear score 1: the score never drops below 1, so level 1 zones never penalise
+anyone. Empty slots still lower a score that is above 1.
+
 Worn functional Curios count only when they raise your score, highest first, so
 an old low-level ring never makes you weaker. Empty and cosmetic Curios slots
 never count.

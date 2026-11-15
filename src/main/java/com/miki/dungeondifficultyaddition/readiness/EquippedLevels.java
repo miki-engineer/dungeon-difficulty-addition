@@ -4,6 +4,7 @@ import com.miki.dungeondifficultyaddition.compat.AccessoryFamilies;
 import com.miki.dungeondifficultyaddition.compat.OptionalModSupport;
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
 import com.miki.dungeondifficultyaddition.scaling.ItemTraits;
+import com.miki.dungeondifficultyaddition.scaling.LevelBonus;
 import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
@@ -80,7 +81,8 @@ public final class EquippedLevels {
         for (var slot : slots) {
             for (int count = 0; count < slot.weight(); count++) (slot.optional() ? optional : required).add(slot.level());
         }
-        return ReadinessMath.gearScore(required, optional, EncounterConfig.get().max_level);
+        return ReadinessMath.withLevelOneFloor(ReadinessMath.gearScore(required, optional, EncounterConfig.get().max_level),
+                LevelBonus.levelOneIsBase());
     }
 
     private static Slot required(String name, ItemStack stack, int weight) {
