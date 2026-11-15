@@ -12,6 +12,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.tag.ItemTags;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,9 +71,14 @@ public final class EquippedLevels {
         return isWeapon(last) ? last : ItemStack.EMPTY;
     }
 
+    /**
+     * Pickaxes, shovels and hoes live in the hotbar, so scrolling past one keeps the last weapon counted
+     * instead of replacing it. Axes still count: combat packs use them as weapons. Tags cover modded tools.
+     */
     private static boolean isWeapon(ItemStack stack) {
         return AccessoryItemScaling.isForgeEquipment(stack) && !(stack.getItem() instanceof ArmorItem)
-                && !AccessoryFamilies.accessory(ItemTraits.of(stack).namespace());
+                && !AccessoryFamilies.accessory(ItemTraits.of(stack).namespace())
+                && !stack.isIn(ItemTags.PICKAXES) && !stack.isIn(ItemTags.SHOVELS) && !stack.isIn(ItemTags.HOES);
     }
 
     public static double gearScore(List<Slot> slots) {
