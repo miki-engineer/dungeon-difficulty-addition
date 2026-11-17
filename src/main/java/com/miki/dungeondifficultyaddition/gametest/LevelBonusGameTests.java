@@ -54,9 +54,13 @@ public final class LevelBonusGameTests {
 
     /** Dungeon Difficulty's private per-mob step, the one our redirect hooks. */
     private static void scaleMob(LivingEntity mob, int level, Config.AttributeModifier... modifiers) throws Exception {
+        scaleMob(mob, "gametest", level, modifiers);
+    }
+
+    private static void scaleMob(LivingEntity mob, String source, int level, Config.AttributeModifier... modifiers) throws Exception {
         Method apply = EntityScaling.class.getDeclaredMethod("apply", PatternMatching.EntityScaleResult.class, LivingEntity.class);
         apply.setAccessible(true);
-        apply.invoke(null, new PatternMatching.EntityScaleResult("gametest", List.of(modifiers), level, 0), mob);
+        apply.invoke(null, new PatternMatching.EntityScaleResult(source, List.of(modifiers), level, 0), mob);
     }
 
     private static double value(LivingEntity mob, RegistryEntry<EntityAttribute> attribute) {
@@ -84,6 +88,27 @@ public final class LevelBonusGameTests {
                 "Level 3 mob has two levels of health bonus, got " + value(levelThree, EntityAttributes.GENERIC_MAX_HEALTH));
         context.assertTrue(Math.abs(value(levelThree, EntityAttributes.GENERIC_ARMOR) - (baseArmor + 2)) < EPSILON,
                 "Level 3 mob has two levels of armor bonus, got " + value(levelThree, EntityAttributes.GENERIC_ARMOR));
+        context.complete();
+    }
+
+    /**
+     * Per-player difficulty already passes min(players, cap) - 1, so it must not be shifted again:
+     * two players (level 1) give one bonus step, as in Dungeon Difficulty without this mod.
+     */
+    @GameTest(templateName = "test_empty")
+    public static void perPlayerDifficultyKeepsItsOwnOffset(TestContext context) throws Exception {
+        var health = modifier("minecraft:generic.max_health", Config.Operation.MULTIPLY_BASE, 0.25F);
+
+        var twoPlayers = context.spawnEntity(EntityType.ZOMBIE, MOB);
+        double baseHealth = value(twoPlayers, EntityAttributes.GENERIC_MAX_HEALTH);
+        scaleMob(twoPlayers, "per_player", 1, health);
+        context.assertTrue(Math.abs(value(twoPlayers, EntityAttributes.GENERIC_MAX_HEALTH) - baseHealth * 1.25) < EPSILON,
+                "Two players add one step (+25% health), got " + value(twoPlayers, EntityAttributes.GENERIC_MAX_HEALTH));
+
+        var fivePlayers = context.spawnEntity(EntityType.ZOMBIE, MOB);
+        scaleMob(fivePlayers, "per_player", 4, health);
+        context.assertTrue(Math.abs(value(fivePlayers, EntityAttributes.GENERIC_MAX_HEALTH) - baseHealth * 2) < EPSILON,
+                "Five players add four steps (+100% health), got " + value(fivePlayers, EntityAttributes.GENERIC_MAX_HEALTH));
         context.complete();
     }
 
