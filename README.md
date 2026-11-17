@@ -216,8 +216,11 @@ This feature is **disabled by default** and is independent of accessory scaling.
 Your gear score is one number for both damage taken and damage dealt: the
 average level of your four armor slots and your weapon, which counts twice. The
 weapon is the one in your main hand; while you hold food, blocks or a torch, the
-last weapon you held still counts, so your score does not drop mid-fight. An
-empty armor slot, or no weapon held since joining, counts as level 0.
+last weapon you held still counts, so your score does not drop mid-fight. A
+pickaxe, shovel or hoe takes the weapon's place only when it is higher, so tools
+can raise your score but never lower it, and without a weapon your best tool
+keeps counting. Holding a weapon always counts that weapon, even a weaker one.
+An empty armor slot, or nothing held since joining, counts as level 0.
 
 While level 1 is base stats (`minimum_equipment_level_enabled`), every player starts
 at gear score 1: the score never drops below 1, so level 1 zones never penalise

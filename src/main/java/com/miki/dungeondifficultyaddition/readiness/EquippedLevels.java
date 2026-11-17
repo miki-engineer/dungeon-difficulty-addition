@@ -58,27 +58,49 @@ public final class EquippedLevels {
 
     /** Called every player tick on both sides, so the client tab and server damage agree. */
     public static void trackWeapon(PlayerEntity player) {
-        if (isWeapon(player.getMainHandStack())) LAST_WEAPON_SLOT.put(player, player.getInventory().selectedSlot);
-    }
-
-    /** The held weapon; while holding food, blocks or a torch, the last weapon held keeps counting. */
-    static ItemStack weapon(PlayerEntity player) {
-        var held = player.getMainHandStack();
-        if (isWeapon(held)) return held;
-        var slot = LAST_WEAPON_SLOT.get(player);
-        if (slot == null || slot < 0 || slot >= PlayerInventory.getHotbarSize()) return ItemStack.EMPTY;
-        var last = player.getInventory().getStack(slot);
-        return isWeapon(last) ? last : ItemStack.EMPTY;
+        if (replacesRemembered(player, player.getMainHandStack())) {
+            LAST_WEAPON_SLOT.put(player, player.getInventory().selectedSlot);
+        }
     }
 
     /**
-     * Pickaxes, shovels and hoes live in the hotbar, so scrolling past one keeps the last weapon counted
-     * instead of replacing it. Axes still count: combat packs use them as weapons. Tags cover modded tools.
+     * The remembered weapon slot item. Holding a weapon always takes the slot, even a weaker one. A held
+     * tool takes it only when higher, so tools can raise the score but never lower it; with no weapon in
+     * the hotbar, the best tool held keeps counting. Food, blocks or a torch leave the slot as it is.
      */
-    private static boolean isWeapon(ItemStack stack) {
+    static ItemStack weapon(PlayerEntity player) {
+        var held = player.getMainHandStack();
+        return replacesRemembered(player, held) ? held : remembered(player);
+    }
+
+    private static boolean replacesRemembered(PlayerEntity player, ItemStack held) {
+        return isWeapon(held) || (isTool(held) && level(held) > level(remembered(player)));
+    }
+
+    private static ItemStack remembered(PlayerEntity player) {
+        var slot = LAST_WEAPON_SLOT.get(player);
+        if (slot == null || slot < 0 || slot >= PlayerInventory.getHotbarSize()) return ItemStack.EMPTY;
+        var last = player.getInventory().getStack(slot);
+        return isHeldGear(last) ? last : ItemStack.EMPTY;
+    }
+
+    /** Held equipment that is not armor or an accessory: weapons and tools. */
+    private static boolean isHeldGear(ItemStack stack) {
         return AccessoryItemScaling.isForgeEquipment(stack) && !(stack.getItem() instanceof ArmorItem)
-                && !AccessoryFamilies.accessory(ItemTraits.of(stack).namespace())
-                && !stack.isIn(ItemTags.PICKAXES) && !stack.isIn(ItemTags.SHOVELS) && !stack.isIn(ItemTags.HOES);
+                && !AccessoryFamilies.accessory(ItemTraits.of(stack).namespace());
+    }
+
+    /**
+     * Pickaxes, shovels and hoes live in the hotbar, so they are tools, not the remembered weapon. Axes
+     * stay weapons: combat packs use them as weapons. Tags cover modded tools.
+     */
+    private static boolean isTool(ItemStack stack) {
+        return isHeldGear(stack)
+                && (stack.isIn(ItemTags.PICKAXES) || stack.isIn(ItemTags.SHOVELS) || stack.isIn(ItemTags.HOES));
+    }
+
+    private static boolean isWeapon(ItemStack stack) {
+        return isHeldGear(stack) && !isTool(stack);
     }
 
     public static double gearScore(List<Slot> slots) {

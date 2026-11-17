@@ -36,24 +36,57 @@ public final class ReadinessGameTests {
     }
 
     @GameTest(templateName = "test_empty")
-    public static void scrollingPastToolsKeepsTheLastWeapon(TestContext context) {
+    public static void toolsOnlyRaiseTheWeaponSlot(TestContext context) {
         var player = FakePlayerFactory.getMinecraft(context.getWorld());
         var inventory = player.getInventory();
+        for (int slot = 0; slot < 9; slot++) inventory.setStack(slot, ItemStack.EMPTY);
         inventory.setStack(0, levelled(Items.IRON_SWORD, 3));
         inventory.setStack(1, levelled(Items.DIAMOND_PICKAXE, 5));
-        inventory.setStack(2, levelled(Items.IRON_SHOVEL, 5));
-        inventory.setStack(3, levelled(Items.IRON_HOE, 5));
-        inventory.setStack(4, levelled(Items.IRON_AXE, 4));
+        inventory.setStack(2, levelled(Items.IRON_SHOVEL, 2));
+        inventory.setStack(3, levelled(Items.IRON_HOE, 3));
+        inventory.setStack(4, levelled(Items.IRON_AXE, 1));
+        inventory.setStack(5, new ItemStack(Items.BREAD));
 
         select(player, 0);
-        context.assertTrue(countedWeapon(player).equals("minecraft:iron_sword"), "Held sword counts");
-        for (int tool = 1; tool <= 3; tool++) {
-            select(player, tool);
-            context.assertTrue(countedWeapon(player).equals("minecraft:iron_sword"),
-                    "Scrolling to " + inventory.getStack(tool).getItem() + " keeps the sword, got " + countedWeapon(player));
-        }
+        expect(context, player, "minecraft:iron_sword", "Held sword counts");
+        select(player, 1);
+        expect(context, player, "minecraft:diamond_pickaxe", "A level 5 pickaxe raises it above the level 3 sword");
+        select(player, 2);
+        expect(context, player, "minecraft:diamond_pickaxe", "A level 2 shovel never lowers it");
+        select(player, 5);
+        expect(context, player, "minecraft:diamond_pickaxe", "Food keeps the remembered pickaxe");
+        select(player, 0);
+        expect(context, player, "minecraft:iron_sword", "Scrolling onto a weapon counts it again, even when lower");
+        select(player, 3);
+        expect(context, player, "minecraft:iron_sword", "A tool at the same level keeps the sword");
         select(player, 4);
-        context.assertTrue(countedWeapon(player).equals("minecraft:iron_axe"), "Axes are weapons, got " + countedWeapon(player));
+        expect(context, player, "minecraft:iron_axe", "A weaker level 1 axe is a weapon, so it counts");
+        select(player, 3);
+        expect(context, player, "minecraft:iron_hoe", "A level 3 hoe now raises it above the level 1 axe");
         context.complete();
+    }
+
+    @GameTest(templateName = "test_empty")
+    public static void toolsCountWithoutAnyWeapon(TestContext context) {
+        var player = FakePlayerFactory.getMinecraft(context.getWorld());
+        var inventory = player.getInventory();
+        for (int slot = 0; slot < 9; slot++) inventory.setStack(slot, ItemStack.EMPTY);
+        inventory.setStack(0, levelled(Items.IRON_PICKAXE, 2));
+        inventory.setStack(1, levelled(Items.DIAMOND_SHOVEL, 4));
+        inventory.setStack(2, new ItemStack(Items.TORCH));
+
+        select(player, 0);
+        expect(context, player, "minecraft:iron_pickaxe", "With no weapon, a held tool counts");
+        select(player, 1);
+        expect(context, player, "minecraft:diamond_shovel", "A higher tool replaces it");
+        select(player, 0);
+        expect(context, player, "minecraft:diamond_shovel", "A lower tool never pushes it down");
+        select(player, 2);
+        expect(context, player, "minecraft:diamond_shovel", "Holding a torch keeps the best tool counted");
+        context.complete();
+    }
+
+    private static void expect(TestContext context, PlayerEntity player, String item, String rule) {
+        context.assertTrue(countedWeapon(player).equals(item), rule + ": expected " + item + ", got " + countedWeapon(player));
     }
 }
