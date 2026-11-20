@@ -109,7 +109,7 @@ final class DungeonDifficultyNativeScaling {
         return ItemScaling.isScaled(stack);
     }
 
-    private static boolean isNativeEquipment(ItemStack stack) {
+    static boolean isNativeEquipment(ItemStack stack) {
         return stack.getItem() instanceof ToolItem
                 || stack.getItem() instanceof RangedWeaponItem
                 || stack.getItem() instanceof ArmorItem

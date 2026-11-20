@@ -140,7 +140,7 @@ public final class RelicEffectScaling {
             return 0;
         }
 
-        if (!AccessoryFamilies.relics(ItemTraits.of(stack).namespace())) {
+        if (!AccessoryFamilies.relics(ItemTraits.of(stack).namespace()) || AccessoryItemScaling.isExtraModEquipment(stack)) {
             return 0;
         }
 

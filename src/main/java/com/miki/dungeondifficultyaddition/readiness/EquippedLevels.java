@@ -87,7 +87,7 @@ public final class EquippedLevels {
     /** Held equipment that is not armor or an accessory: weapons and tools. */
     private static boolean isHeldGear(ItemStack stack) {
         return AccessoryItemScaling.isForgeEquipment(stack) && !(stack.getItem() instanceof ArmorItem)
-                && !AccessoryFamilies.accessory(ItemTraits.of(stack).namespace());
+                && !(AccessoryFamilies.accessory(ItemTraits.of(stack).namespace()) && !com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling.isExtraModEquipment(stack));
     }
 
     /**

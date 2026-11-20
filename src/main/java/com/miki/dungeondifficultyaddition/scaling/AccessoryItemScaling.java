@@ -30,9 +30,22 @@ public final class AccessoryItemScaling {
     }
 
     public static boolean isSupportedAccessory(ItemStack stack, AccessoryScalingConfig config) {
+        if (isExtraModEquipment(stack)) {
+            return false;
+        }
         var namespace = ItemTraits.of(stack).namespace();
         return (config.scale_jewelry && AccessoryFamilies.jewelry(namespace))
                 || (config.scale_relics && AccessoryFamilies.relics(namespace));
+    }
+
+    /**
+     * A weapon, tool, armour piece or shield of an extra relic mod (scaling.extra_relic_namespaces, e.g. Realmbound Content, which
+     * has gear as well as curios). Only such a mod's curios join the relics family; its equipment is ordinary equipment, scaled by
+     * Dungeon Difficulty as any other (its bonus merged into the item's own line).
+     */
+    public static boolean isExtraModEquipment(ItemStack stack) {
+        return stack != null && !stack.isEmpty() && AccessoryFamilies.extraRelics(ItemTraits.of(stack).namespace())
+                && DungeonDifficultyNativeScaling.isNativeEquipment(stack);
     }
 
     /** One switch per family: enabled plus scale_jewelry/scale_relics turn every live value on or off. */
@@ -385,7 +398,7 @@ public final class AccessoryItemScaling {
         if (!OptionalModSupport.isLoaded("curios")) {
             return false;
         }
-        return AccessoryFamilies.accessory(ItemTraits.of(stack).namespace());
+        return AccessoryFamilies.accessory(ItemTraits.of(stack).namespace()) && !isExtraModEquipment(stack);
     }
 
     private static void ensureCuriosRoll(ItemStack stack) {

@@ -19,7 +19,7 @@ public final class ExtraCurioScaling {
 
     private static void modifiers(CurioAttributeModifierEvent event) {
         var stack = event.getItemStack();
-        if (!AccessoryFamilies.extraRelics(ItemTraits.of(stack).namespace())) return;
+        if (!AccessoryFamilies.extraRelics(ItemTraits.of(stack).namespace()) || AccessoryItemScaling.isExtraModEquipment(stack)) return;
         var scaled = AccessoryItemScaling.scaledCuriosModifiers(stack, event.getModifiers());
         if (scaled == null) return;
         event.clearModifiers();
