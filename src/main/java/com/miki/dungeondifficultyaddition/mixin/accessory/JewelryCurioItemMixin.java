@@ -1,8 +1,6 @@
 package com.miki.dungeondifficultyaddition.mixin.accessory;
 
 import com.miki.dungeondifficultyaddition.scaling.AccessoryItemScaling;
-import com.google.common.collect.LinkedHashMultimap;
-import net.dungeon_difficulty.logic.ItemScaling;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.ItemStack;
@@ -27,32 +25,9 @@ public abstract class JewelryCurioItemMixin {
                             >
                     > cir
     ) {
-        if (ItemScaling.getScaleFactor(stack) <= 0 || !AccessoryItemScaling.isScalingEnabled(stack)) {
-            return;
+        var scaled = AccessoryItemScaling.scaledCuriosModifiers(stack, cir.getReturnValue());
+        if (scaled != null) {
+            cir.setReturnValue(scaled);
         }
-
-        var original = cir.getReturnValue();
-        if (original == null || original.isEmpty()) {
-            return;
-        }
-
-        var level = ItemScaling.getScaleFactor(stack);
-        var scaled = LinkedHashMultimap.<RegistryEntry<EntityAttribute>, EntityAttributeModifier>create();
-        for (var entry : original.entries()) {
-            var attributeId = entry.getKey().getKey()
-                    .map(key -> key.getValue().toString())
-                    .orElse("");
-            var modifier = entry.getValue();
-            var value = AccessoryItemScaling.configuredCuriosValue(
-                    stack, modifier.value(), attributeId, level
-            );
-            // Unmatched attributes keep their exact value; rounding them could erase small stats.
-            scaled.put(entry.getKey(), value == modifier.value() ? modifier : new EntityAttributeModifier(
-                    modifier.id(),
-                    AccessoryItemScaling.compactCuriosValue(value, modifier.operation()),
-                    modifier.operation()
-            ));
-        }
-        cir.setReturnValue(scaled);
     }
 }

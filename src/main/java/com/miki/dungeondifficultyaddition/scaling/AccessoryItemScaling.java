@@ -10,7 +10,11 @@ import net.dungeon_difficulty.logic.PatternMatching;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.NbtComponent;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
@@ -308,6 +312,34 @@ public final class AccessoryItemScaling {
             };
         }
         return bonus;
+    }
+
+    /**
+     * A curio's attribute modifiers scaled by its item level, or null when it is not scaled (no level, scaling off, or nothing to
+     * scale). Shared by the Jewelry and Relics curio-class mixins and, for the extra relic mods (scaling.extra_relic_namespaces),
+     * by Curios' attribute event ({@link com.miki.dungeondifficultyaddition.compat.ExtraCurioScaling}).
+     */
+    public static Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> scaledCuriosModifiers(
+            ItemStack stack, Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> original) {
+        var level = ItemScaling.getScaleFactor(stack);
+        if (level <= 0 || original == null || original.isEmpty() || !isScalingEnabled(stack)) {
+            return null;
+        }
+        var scaled = LinkedHashMultimap.<RegistryEntry<EntityAttribute>, EntityAttributeModifier>create();
+        for (var entry : original.entries()) {
+            var attributeId = entry.getKey().getKey()
+                    .map(key -> key.getValue().toString())
+                    .orElse("");
+            var modifier = entry.getValue();
+            var value = configuredCuriosValue(stack, modifier.value(), attributeId, level);
+            // Unmatched attributes keep their exact value; rounding them could erase small stats.
+            scaled.put(entry.getKey(), value == modifier.value() ? modifier : new EntityAttributeModifier(
+                    modifier.id(),
+                    compactCuriosValue(value, modifier.operation()),
+                    modifier.operation()
+            ));
+        }
+        return scaled;
     }
 
     // Returns the base value and its scaling as one Curios modifier.

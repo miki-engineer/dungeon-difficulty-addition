@@ -11,6 +11,11 @@ public final class AccessoryScalingConfig {
     public boolean minimum_equipment_level_enabled = true;
     public boolean scale_jewelry = true;
     public boolean scale_relics = true;
+    /**
+     * Other mods whose curios count as the relics family: item levels, scaled stats and spell effects, the level tooltip and
+     * readiness, as for Relics RPG. Realmbound Content (the Realmbound modpack's own items) by default.
+     */
+    public List<String> extra_relic_namespaces = List.of("realmboundcontent");
     public boolean merge_accessory_modifiers = true;
     public boolean show_compat_tooltip = true;
     public List<Config.AttributeModifier> attributes = List.of(defaultAttributeModifier());
@@ -18,6 +23,7 @@ public final class AccessoryScalingConfig {
     public static AccessoryScalingConfig get() { return ModSettings.get().scaling(); }
     public static void reload() { ModSettings.reload(); }
     public List<Config.AttributeModifier> modifiers() { return attributes != null ? attributes : List.of(); }
+    public List<String> extraRelicNamespaces() { return extra_relic_namespaces != null ? extra_relic_namespaces : List.of(); }
     public int fixedLevel(ItemStack stack) {
         return ModSettings.get().fixedLevels().levelFor(ItemTraits.of(stack).id());
     }

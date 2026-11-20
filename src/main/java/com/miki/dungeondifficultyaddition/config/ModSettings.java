@@ -36,9 +36,12 @@ public final class ModSettings {
         defaults.add("anvil", GSON.toJsonTree(new SalvageConfig()));
         try {
             var root = SettingsFiles.load(directory, defaults, ModSettings::validate);
-            return new Snapshot(section(root, "scaling", AccessoryScalingConfig.class),
+            var scaling = section(root, "scaling", AccessoryScalingConfig.class);
+            var snapshot = new Snapshot(scaling,
                     section(root, "encounters", EncounterConfig.class), section(root, "anvil", SalvageConfig.class),
                     FixedItemLevels.fromJson(SettingsFiles.read(directory.resolve("fixed_item_levels.json"))));
+            com.miki.dungeondifficultyaddition.compat.AccessoryFamilies.setExtraRelics(scaling.extraRelicNamespaces());
+            return snapshot;
         } catch (Exception exception) {
             throw new IllegalStateException("Could not load DDA settings from " + directory
                     + ". Existing files are preserved; fix the reported config error before restarting.", exception);

@@ -33,5 +33,7 @@ public final class DungeonDifficultyAddition {
         if (OptionalModSupport.isLoaded(SPELL_ENGINE_MOD_ID)) {
             NeoForge.EVENT_BUS.addListener(ServerTickEvent.Pre.class, event -> RelicEffectScaling.reset());
         }
+        // The extra relic mods' curios (Realmbound Content by default) scale through Curios' attribute event.
+        if (OptionalModSupport.isLoaded("curios")) com.miki.dungeondifficultyaddition.compat.ExtraCurioScaling.register();
     }
 }
